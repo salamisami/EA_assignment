@@ -15,6 +15,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package games.homeship.robomazeblast;
 
@@ -33,59 +34,58 @@ import java.io.IOException;
  */
 public class Main {
 
-    public static final String FONT0_RESOURCE = "res/gfx/fonts/slkscr.ttf";
-    public static final String FONT1_RESOURCE = "res/gfx/fonts/slkscrb.ttf";
-    public static final String TITLE = "Robo Maze Blast";
-    public static final String VERSION = "3.0.0";
+  public static final String FONT0_RESOURCE = "res/gfx/fonts/slkscr.ttf";
+  public static final String FONT1_RESOURCE = "res/gfx/fonts/slkscrb.ttf";
+  public static final String TITLE = "Robo Maze Blast";
+  public static final String VERSION = "3.0.0";
 
-    public static boolean Debugging = false;
+  public static boolean Debugging = false;
 
-    public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
 
-        // Initialize things
-        loadCustomFont();
+    // Initialize things
+    loadCustomFont();
 
-        // Should we show the Server GUI?
-        boolean headlessServer = true;
+    // Should we show the Server GUI?
+    boolean headlessServer = true;
 
-        // Should we start a Server?
-        boolean startServer = true;
+    // Should we start a Server?
+    boolean startServer = true;
 
-        // Should we start a Client?
-        boolean startClient = true;
+    // Should we start a Client?
+    boolean startClient = true;
 
-        if (startClient) {
-            ClientThread.getInstance().start();
-        }
-
-        if (startServer) {
-            ServerThread serverThread = new ServerThread(!headlessServer);
-            serverThread.start();
-
-            synchronized (serverThread) {
-                serverThread.wait();
-            }
-        }
+    if (startClient) {
+      ClientThread.getInstance().start();
     }
 
-    private static void loadCustomFont() {
-        try {
-            GraphicsEnvironment ge
-                    = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(Font.createFont(Font.TRUETYPE_FONT,
-                    Resource.getAsStream(FONT0_RESOURCE)));
-            ge.registerFont(Font.createFont(Font.TRUETYPE_FONT,
-                    Resource.getAsStream(FONT1_RESOURCE)));
-        } catch (IOException | FontFormatException ex) {
-            ex.printStackTrace();
-        }
-    }
+    if (startServer) {
+      ServerThread serverThread = new ServerThread(!headlessServer);
+      serverThread.start();
 
-    public static void startSingleGame() throws IOException {
-        final var ct = ClientThread.getInstance();
-
-        ct.connect("localhost");
-        ct.getServer().login1("_localuser_");
+      synchronized (serverThread) {
+        serverThread.wait();
+      }
     }
+  }
+
+  private static void loadCustomFont() {
+    try {
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT,
+          Resource.getAsStream(FONT0_RESOURCE)));
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT,
+          Resource.getAsStream(FONT1_RESOURCE)));
+    } catch (IOException | FontFormatException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  public static void startSingleGame() throws IOException {
+    final var ct = ClientThread.getInstance();
+
+    ct.connect("localhost");
+    ct.getServer().login1("_localuser_");
+  }
 
 }
