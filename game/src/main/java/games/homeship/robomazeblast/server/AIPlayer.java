@@ -444,55 +444,81 @@ class AIPlayer extends Player {
   /**
    * A small step for AI... moving of the Player.
    */
+
   public void tick() {
     if (!this.game.isRunning())
       return;
 
-    if (currentPath.size() > 0) // walk if path exists
-    {
+    int actionTaken = ACTION_NONE; // Track which action is taken this tick
+
+    if (currentPath.size() > 0) {
       int[] node = currentPath.remove(0);
-      if (!wannaMove(node[0] - gridX, node[1] - gridY)) // Move expects
-                                                        // relative
-                                                        // direction
-        currentPath = new ArrayList<int[]>(); // Delete path because it
-                                              // must be invalid
-    } else if (bombs.size() < super.bombCount) // You can put a bomb
-    {
+      int dx = node[0] - gridX;
+      int dy = node[1] - gridY;
+
+      // Determine movement direction
+      if (dy < 0)
+        actionTaken = ACTION_UP;
+      else if (dy > 0)
+        actionTaken = ACTION_DOWN;
+      else if (dx < 0)
+        actionTaken = ACTION_LEFT;
+      else if (dx > 0)
+        actionTaken = ACTION_RIGHT;
+
+      if (!wannaMove(dx, dy)) {
+        currentPath = new ArrayList<>();
+      }
+    } else if (bombs.size() < super.bombCount) {
       if (isTargetZone(new Point(gridX, gridY))) {
+        actionTaken = ACTION_BOMB; // Record bomb placement
         placeBomb();
-        currentPath = calculateHidePath(checkForBomb(new Point(gridX,
-            gridY)));
+
+        currentPath = calculateHidePath(checkForBomb(new Point(gridX, gridY)));
         if (currentPath == null) {
-          currentPath = new ArrayList<int[]>();
-          placeBomb(); // Suicide
+          currentPath = new ArrayList<>();
+          placeBomb(); // Second bomb (suicide)
+          // Optional: Record second bomb as separate action
         }
       } else {
         currentPath = calculateTargetPath();
-        if (currentPath == null)
-          currentPath = new ArrayList<int[]>();
+        if (currentPath == null) {
+          currentPath = new ArrayList<>();
+        }
       }
     } else {
       Element bomb = checkForBomb(null);
-      if (bomb == null)
-        return;
-      currentPath = calculateHidePath(bomb);
-      if (currentPath == null) {
-        currentPath = new ArrayList<int[]>();
+      if (bomb != null) {
+        currentPath = calculateHidePath(bomb);
+        if (currentPath == null) {
+          currentPath = new ArrayList<>();
+        }
       }
+    }
+
+    // Record action if enabled
+    if (isRecording) {
+      recordAction(actionTaken);
     }
   }
 
   // Supervised learning recording section.
-  private boolean isRecording = false;
-  private List<String> recordedData = new ArrayList<>();
+  private boolean isRecording = true;
+  private List<String> recordings = new ArrayList<>();
 
+  private static final int ACTION_NONE = 0;
+  private static final int ACTION_UP = 1;
+  private static final int ACTION_DOWN = 2;
+  private static final int ACTION_LEFT = 3;
+  private static final int ACTION_RIGHT = 4;
+  private static final int ACTION_BOMB = 5;
+
+  // New method to record state + action
   private void recordAction(int action) {
-    if (!isRecording)
-      return;
-
     double[] state = getStateVector();
-    String dataLine = Arrays.toString(state) + " -> " + action;
-    recordedData.add(dataLine);
+    String record = String.format("%.2f,%.2f,%.1f,%.1f,%.2f,%d",
+        state[0], state[1], state[2], state[3], state[4], action);
+    recordings.add(record);
   }
 
   private double[] getStateVector() {
@@ -528,10 +554,10 @@ class AIPlayer extends Player {
 
   public void saveRecording(String filename) {
     try (PrintWriter out = new PrintWriter(filename)) {
-      recordedData.forEach(out::println);
+      recordings.forEach(out::println);
     } catch (Exception e) {
       System.err.println("Failed to save recording: " + e.getMessage());
     }
-    recordedData.clear();
+    recordings.clear();
   }
 }
