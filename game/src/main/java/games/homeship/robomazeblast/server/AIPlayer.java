@@ -28,7 +28,9 @@ import static games.homeship.robomazeblast.server.Player.MoveDirection.UP;
 import games.homeship.robomazeblast.server.api.Element;
 import games.homeship.robomazeblast.server.api.Explodable;
 import java.awt.Point;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -480,4 +482,56 @@ class AIPlayer extends Player {
     }
   }
 
+  // Supervised learning recording section.
+  private boolean isRecording = false;
+  private List<String> recordedData = new ArrayList<>();
+
+  private void recordAction(int action) {
+    if (!isRecording)
+      return;
+
+    double[] state = getStateVector();
+    String dataLine = Arrays.toString(state) + " -> " + action;
+    recordedData.add(dataLine);
+  }
+
+  private double[] getStateVector() {
+    double normX = gridX / (double) playground.getRows();
+    double normY = gridY / (double) playground.getColumns();
+
+    // Bomb availability
+    double bombAvailable = (bombs.size() < super.bombCount) ? 1.0 : 0.0;
+
+    Point currentPos = new Point(gridX, gridY);
+    Element bomb = checkForBomb(currentPos);
+
+    return new double[] {
+        normX, normY,
+        bombAvailable,
+        bomb != null ? 1.0 : 0.0,
+        bombDirectionScore(bomb)
+    };
+  }
+
+  private double bombDirectionScore(Element bomb) {
+    if (bomb == null)
+      return 0.0;
+
+    int dx = bomb.getX() - gridX;
+    int dy = bomb.getY() - gridY;
+
+    double xInfluence = Math.signum(dx) * (1.0 - Math.min(1.0, Math.abs(dx) / 4.0));
+    double yInfluence = Math.signum(dy) * (1.0 - Math.min(1.0, Math.abs(dy) / 4.0));
+
+    return (xInfluence + yInfluence) / 2.0; // Normalized to [-1,1]
+  }
+
+  public void saveRecording(String filename) {
+    try (PrintWriter out = new PrintWriter(filename)) {
+      recordedData.forEach(out::println);
+    } catch (Exception e) {
+      System.err.println("Failed to save recording: " + e.getMessage());
+    }
+    recordedData.clear();
+  }
 }
