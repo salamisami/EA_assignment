@@ -7,16 +7,17 @@
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
 
+
 % Useful packages
 \usepackage{amsmath}
 \usepackage{graphicx}
 \title{Robo-maze Blast Report}
-\author{Doga Sara}
+\author{Dogà Sara}
 \author{Widmann Lukas}
-\author{Askar Sami} %this should start the github workflow
+\author{Askar Sami}
 
 \begin{abstract}
-Bomberman + Evolutionary algorithmens + Tournament Arc goes brr
+Bomberman + Evolutionary algorithmens + Tournament Arc goes brr 
 \end{abstract}
 
 \begin{document}
@@ -26,28 +27,47 @@ Bomberman + Evolutionary algorithmens + Tournament Arc goes brr
 
 \section{Introduction}
 
-Your introduction goes here! Simply start writing your document and use the Recompile button to view the updated PDF preview. Examples of commonly used commands and features are listed below, to help you get started.
+\subsection{The game}
+\href{https://codeberg.org/chrlns/robo-maze-blast.git}{Robo Maze Blast}, created in 2008 by Kai Ritterbusch and Christian Lins, is a clone of the Bomberman game. Also known as Dynablaster, it is a strategy maze-based video game franchise originally developed by Hudson Soft in 1985.
 
-Once you're familiar with the editor, you can find various project settings in the Overleaf menu, accessed via the button in the very top left of the editor. To view tutorials, user guides, and further documentation, please visit our \href{https://www.overleaf.com/learn}{help library}, or head to our plans page to \href{https://www.overleaf.com/user/subscription/plans}{choose your plan}.
+The general goal of Bomberman is to complete the levels by strategically placing bombs in order to kill enemies and destroy blocks. Some blocks in the path can be destroyed by placing bombs near it, and as the bombs detonate, they will create a burst of vertical and horizontal lines of flames. Except for indestructible blocks, contact with the blast will destroy anything on the screen.
 
-\section{Some examples to get started}
+\subsection{Our Goal}
+The aim of our project is to explore the efficiency of different Genetic Algorithms to develop 3 agents with strategic competence in the Robo Maze Blast scope, and to compare them by making the agents fight against each other and observe which agent outlives the others more frequently.
 
-\subsection{How to create Sections and Subsections}
+\section{Background}
+\subsection{Genetic Algorithms}
+Genetic Algorithms (GA) are optimization algorithms inspired by the process of natural selection and biological evolution. They are widely used to solve complex optimization and search problems in various domains.
+
+The core steps of a typical genetic algorithm can be described as follows:
+\begin{itemize}
+    \item \textbf{Population Base}: Initialize a population from valid chromosomes, i.e. a set of strings that encodes any possible solution. Usually, the initial population is chosen randomly.
+    \item \textbf{Evaluation}: Each population solution is evaluated on the basis of a predetermined fitness function.
+    \item \textbf{Selection}: Reproductive opportunities are allocated to the chromosomes that represent a better solution to the target problem, and such solutions are selected to form a 'mating pool' for the next generation.
+    \item \textbf{Crossover and Mutation}: The selected individuals are then combined to produce offspring by exchanging genetic material. Sometimes small changes can happen in the genetic material, such as bit flips. All of this ensures good exploration of the solution space and diversity.
+    
+\end{itemize}
+These steps are repeated for a number of times until an ending criterion is reached.
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\linewidth]{Steps-of-Genetic-Algorithms.png}
+\caption{\label{fig:Steps-of-Genetic-Algorithm}A diagram on the steps of a genetic algorithm}
+\end{figure}
+
+
+\subsection{Robo Maze Blast's Default AI Agent}
+
+
+\section{Agent 1}
+Agent 1 
+
+\subsection{Differential Evolution}
 
 Simply use the section and subsection commands, as in this example document! With Overleaf, all the formatting and numbering is handled automatically according to the template you've chosen. If you're using the Visual Editor, you can also create new section and subsections via the buttons in the editor toolbar.
-
-\subsection{How to include Figures}
 
 First you have to upload the image file from your computer using the upload link in the file-tree menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
 
 Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
-
-\begin{figure}
-\centering
-\includegraphics[width=0.25\linewidth]{frog.jpg}
-\caption{\label{fig:frog}This frog was uploaded via the file-tree menu.}
-\Description[A Small Frog looking straight]{A small Frog on a leaf looking straight at the camera/viewer with orange eyelids.}
-\end{figure}
 
 \subsection{How to add Tables}
 
