@@ -41,7 +41,7 @@ Genetic Algorithms (GA) are optimization algorithms inspired by the process of n
 One of those domains is the gaming side as in this paper. 
 \begin{figure}
       \centering
-      \includegraphics[width = 0.5\linewidth]{pictures/possibleActionsPlayer.png}
+      \includegraphics[width = 0.5, scale =1.5\linewidth]{pictures/possibleActionsPlayer.png}
       \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
       \end{figure}
 Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
@@ -56,26 +56,61 @@ The core steps of a typical genetic algorithm can be described as follows:
     
 \end{itemize}
 These steps are repeated for a number of times until an ending criterion is reached.
+
 \begin{figure}
 \centering
-\includegraphics[width = 0.5\linewidth]{pictures/Steps-of-Genetic-Algorithms.png}
+\includegraphics[width = 0.4\linewidth]{pictures/Steps-of-Genetic-Algorithms.png}
 \caption{\label{fig:Steps-of-Genetic-Algorithm}A diagram on the steps of a genetic algorithm}
 \end{figure}
 
 
 \subsection{Robo Maze Blast's Default AI Agent}
+The game has its own AI agents that will play against the player in the absence of in-real-life adversaries. They share a common behavior and reasoning that can be visualized with the finite-state machine, as shown in 
+Figure 3.
+
+\begin{figure}
+\includegraphics[width = 1\linewidth]{pictures/bomberman_finite_state_machine 1.png}
+\caption{\label{fig:bomberman_finite_state_machine 1}Finite-state machine of game's AI agent}
+\end{figure}
 
 
-\section{Agent 1}
-Agent 1 
+
+\section{fine-tuning agent behaviors with jenetics}
+
 
 \subsection{Differential Evolution}
 
-Simply use the section and subsection commands, as in this example document! With Overleaf, all the formatting and numbering is handled automatically according to the template you've chosen. If you're using the Visual Editor, you can also create new section and subsections via the buttons in the editor toolbar.
+\subsection{Agent Behavior}
 
-First you have to upload the image file from your computer using the upload link in the file-tree menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
+\subsection{The Reward Metrics}
+The fitness function determines which agent behaviors are rewarded, and which are penalized.
+\begin{table}[htbp]
+\centering
 
-    Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
+\caption{Agent Reward and Penalty Values}
+
+\begin{tabular}{l|l}
+\textbf{Action} & \textbf{Points}  \\
+\hline
+Movement & +1 (per step) \\
+\hline
+Place Bomb & +75 (per bomb) \\
+\hline
+Blow Wall & +150 (per wall) \\
+\hline
+Kills & +750 (per player) \\
+\hline
+Death  & -500  \\
+\hline
+Suicide & -500 \\
+\hline
+Win without kills & +200  \\
+\hline
+Win with kills & +1000  \\
+\hline
+\end{tabular}
+\end{table}
+
 
 \section{Supervised Learning with Jenetics}
 \subsection{Introduction}
@@ -91,17 +126,55 @@ While acknowledging that direct skill transfer between a 3D fighting game (Tekke
     \end{equation*}
     where $\Delta$ represents measurable skill advantage in Robo Maze Blast.
     }}
-    \end{center}
+\end{center}
+\[
+\text{Mutation}(x) = x + \mathcal{N}(0,\, \sigma^2) \quad \text{where } \sigma = 0.2
+\]
 \subsection{Jenetics}
 Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
-\subsection{Jenetics Library Key Features:}
-\begin{itemize}
-    \item \textbf{Evolutionary Engine}: Automatically evolves over generations via Darwinian principles
-    \item \textbf{Domain-Agnostic Design}: Works with any optimization problem (e.g. game strategy in this case)
-    \item \textbf{Built-in Operators}: Selection (e.g. Tournament), Crossover (e.g. Single-point), Mutation (e.g. Gaussian)
-\end{itemize}
-For details of the implementation, refer to \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
+\subsection{Jenetics Framework}
+\label{subsec:jenetics}
 
+We selected it for supervised learning because:
+\begin{itemize}
+    \item \textbf{Prior experience}: We'd successfully used it in previous labs
+    \item \textbf{Java compatibility}: Integrated smoothly with our game codebase
+    \item \textbf{Rapid adjustments}: Changing parameters takes minutes instead of hours
+    \item \textbf{Easy versioning}: Git checkpoints for different configurations
+\end{itemize}
+
+\textbf{Key Features We Utilized:}
+\begin{itemize}
+    \item \textbf{Evolutionary engine}: Automatically handles generations and survival mechanics
+    \item \textbf{Domain flexibility}: Worked directly with our game strategy optimization
+    \item \textbf{Pre-built operators}: 
+    \begin{itemize}
+        \item Tournament selection (picks winners from random groups)
+        \item Gaussian mutation (makes small, smart adjustments)
+        \item Single-point crossover (combines parent solutions)
+    \end{itemize}
+\end{itemize}
+
+\textbf{Agile Implementation:}
+The library let us quickly test configurations by reducing parameters:
+\begin{itemize}
+    \item Population size: 100 $\rightarrow$ 500 
+    \item Mutation rate: 0.1 $\rightarrow$ 0.05 
+    \item Training generations: 50 $\rightarrow$ 200 
+\end{itemize}
+
+This enables an iterative improvement cycles:
+\begin{itemize}
+
+    \item [0.] Gather human data
+    \item [1.] Train initial AI
+    \item [2.] Identify weaknesses
+    \item [3.] Adjust parameters
+    \item [4.] Retrain (under 30 minutes)
+    
+
+\end{itemize}
+\noindent\textbf{Reference}: \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
 \subsection{Implementing Gameplay Recording: Code Changes for Data Collection}
 To implement supervised learning via Jenetics, high quality data is needed. A simple and intuitive appraoch to gather this data is to record a human players actions and the state of the game to gather data. Due to this modification to the player class was needed. Due to this the recordable Player class which is an extension to the player class is born. The key changes to the player class are summarized in \ref{alg:recording} the pseudo code. The changes include: 
 \begin{itemize}
@@ -119,7 +192,7 @@ To implement supervised learning via Jenetics, high quality data is needed. A si
 \caption{RecordablePlayer Extension}
 \textbf{Class} RecordablePlayer \textbf{extends} Player\;
 \nl\textbf{New Data:} 
-    recordings = [] \tcp*{State-action log}
+    recordings = [] \;
     isRecording = false \tcp*{Recording toggle}
 
 \BlankLine
@@ -133,9 +206,9 @@ To implement supervised learning via Jenetics, high quality data is needed. A si
     \If{isRecording}{recordAction(BOMB) \tcp*{Records bomb placement}}
 
 \nl\textbf{State Capture (New)}:
-    state $\leftarrow$ [normX, normY, bombAvail, bombNear] \tcp*{Normalized features}
-    record $\leftarrow$ state + action \tcp*{Concatenates state \& action}
-    recordings.add(record) \tcp*{Appends to log}
+    state $\leftarrow$ [normX, normY, bombAvail, bombNear] \tcp*{Normalized }
+    record $\leftarrow$ state + action \;
+    recordings.add(record) \;
 
 \nl\textbf{Output (New)}:
     \Save(filename) $\rightarrow$ Export recordings as CSV\;
