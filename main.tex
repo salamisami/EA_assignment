@@ -3,7 +3,7 @@
 % Language setting
 % Replace `english' with e.g. `spanish' to change the document language
 \usepackage[english]{babel}
-
+\usepackage[ruled,vlined]{algorithm2e}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
 
@@ -84,6 +84,39 @@ Jenetics is an open-source Java library that provides a genetic Algorithm (GA) f
     \item \textbf{Built-in Operators}: Selection (e.g. Tournament), Crossover (e.g. Single-point), Mutation (e.g. Gaussian)
 \end{itemize}
 For details of the implementation, refer to \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
+
+\subsection{Implementing Gameplay Recording: Code Changes for Data Collection}
+
+\begin{algorithm}[H]
+\DontPrintSemicolon
+\SetKwFunction{GetState}{getStateVector}
+\SetKwFunction{Save}{saveRecordings}
+
+\caption{RecordablePlayer Extension (vs. Player)}
+\textbf{Class} RecordablePlayer \textbf{extends} Player\;
+\nl\textbf{New Data:} 
+    recordings = [] \tcp*{State-action log}
+    isRecording = false \tcp*{Recording toggle}
+
+\BlankLine
+\nl\textbf{Key Changes:}\;
+\nl\Override \textbf{move(dx, dy)}:
+    super.move(dx, dy)\;
+    \If{isRecording}{mapToAction(dx, dy) \tcp*{Records movement}}
+
+\nl\Override \textbf{placeBomb()}:
+    super.placeBomb()\;
+    \If{isRecording}{recordAction(BOMB) \tcp*{Records bomb placement}}
+
+\nl\textbf{State Capture (New)}:
+    state $\leftarrow$ [normX, normY, bombAvail, bombNear] \tcp*{Normalized features}
+    record $\leftarrow$ state + action \tcp*{Concatenates state \& action}
+    recordings.add(record) \tcp*{Appends to log}
+
+\nl\textbf{Output (New)}:
+    \Save(filename) $\rightarrow$ Export recordings as CSV\;
+\end{algorithm}
+
 \subsection{How to add Citations and a References List}
 
 You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
