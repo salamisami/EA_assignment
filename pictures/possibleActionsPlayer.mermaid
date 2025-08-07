@@ -1,0 +1,11 @@
+---
+config:
+  theme: 'neutral'
+---
+
+graph TD
+  A[Current State] --> B{Decision}
+  B -->|Low Health| C[Evade bombDirection]
+  B -->|bombAvailable| D[Place trap at chokepoints]
+  B -->|bombNearby| E[Move opposite bombDirection]
+  B -->|Clear Path| F[Advance toward opponent] 

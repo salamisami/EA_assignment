@@ -2,3 +2,7 @@
 database.po
 highscore.po
 server.log
+main.aux
+main.fdb_latexmk
+main.fls
+main.log

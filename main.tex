@@ -38,6 +38,12 @@ The aim of our project is to explore the efficiency of different Genetic Algorit
 \section{Background}
 \subsection{Genetic Algorithms}
 Genetic Algorithms (GA) are optimization algorithms inspired by the process of natural selection and biological evolution. They are widely used to solve complex optimization and search problems in various domains. 
+One of those domains is the gaming side as in this paper. 
+\begin{figure}
+      \centering
+      \includegraphics[width = 0.5\linewidth]{pictures/possibleActionsPlayer.png}
+      \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
+      \end{figure}
 Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
 \textit{``Genetic Algorithms (GAs) were selected for their ability to handle complex combinatorial optimization problems [...] and to encode domain-specific constraints"} (Section 1).
 
@@ -73,8 +79,19 @@ First you have to upload the image file from your computer using the upload link
 
 \section{Supervised Learning with Jenetics}
 \subsection{Introduction}
-My objective was to create an AI player based on a GA using human game-play data. For this, I chose the Jenetics library. 
-
+My objective was to create an AI player using a genetic algorithm (GA) trained on human gameplay data, with an exploration of skill transferability across gaming domains. 
+This approach was motivated by competitive gaming frameworks where player strength is quantified through Elo rating systems \cite{elo1978}. 
+As an experienced fighting game player, my current Tekken 8 Elo rating stands at \textbf{1940} (profile: \url{https://wank.wavu.wiki/player/3nyHJQr8Gq6Q}, accessed \today). 
+While acknowledging that direct skill transfer between a 3D fighting game (Tekken) and a 2D grid-based strategy game (Robo Maze Blast) may be limited, this project tests the hypothesis that:
+\begin{center}
+    \fbox{\parbox{0.9\linewidth}{
+    \textbf{Hypothesis}: Strategic decision-making patterns in high-Elo players exhibit domain-agnostic qualities, such that:
+    \begin{equation*}
+    \text{Elo}{\text{source}} \geq 1900 \xrightarrow{\text{transfer}} \text{AI}{\text{target}} > \text{AI}_{\text{baseline}} + \Delta
+    \end{equation*}
+    where $\Delta$ represents measurable skill advantage in Robo Maze Blast.
+    }}
+    \end{center}
 \subsection{Jenetics}
 Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
 \subsection{Jenetics Library Key Features:}
