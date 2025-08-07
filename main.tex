@@ -86,13 +86,20 @@ Jenetics is an open-source Java library that provides a genetic Algorithm (GA) f
 For details of the implementation, refer to \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
 
 \subsection{Implementing Gameplay Recording: Code Changes for Data Collection}
-
-\begin{algorithm}[H]
+To implement supervised learning via Jenetics, high quality data is needed. A simple and intuitive appraoch to gather this data is to record a human players actions and the state of the game to gather data. Due to this modification to the player class was needed. Due to this the recordable Player class which is an extension to the player class is born. The key changes to the player class are summarized in \ref{alg:recording} the pseudo code. The changes include: 
+\begin{itemize}
+    \item \textbf{Recording trigger}: Modified movement/bomb methods to log actions
+    \item \textbf{State capture}: Added position normalization and bomb status flags
+    \item \textbf{Data serialization}: Output CSV format for GA compatibility
+\end{itemize}
+\begin{algorithm}[t]
+\caption{RecordablePlayer Modifications}
+\label{alg:recording}
 \DontPrintSemicolon
 \SetKwFunction{GetState}{getStateVector}
 \SetKwFunction{Save}{saveRecordings}
 
-\caption{RecordablePlayer Extension (vs. Player)}
+\caption{RecordablePlayer Extension}
 \textbf{Class} RecordablePlayer \textbf{extends} Player\;
 \nl\textbf{New Data:} 
     recordings = [] \tcp*{State-action log}
@@ -100,11 +107,11 @@ For details of the implementation, refer to \href{https://jenetics.io/manual/man
 
 \BlankLine
 \nl\textbf{Key Changes:}\;
-\nl\Override \textbf{move(dx, dy)}:
+\nl \textbf{move(dx, dy)}:
     super.move(dx, dy)\;
     \If{isRecording}{mapToAction(dx, dy) \tcp*{Records movement}}
 
-\nl\Override \textbf{placeBomb()}:
+\nl \textbf{placeBomb()}:
     super.placeBomb()\;
     \If{isRecording}{recordAction(BOMB) \tcp*{Records bomb placement}}
 
