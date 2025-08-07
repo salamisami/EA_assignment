@@ -37,7 +37,9 @@ The aim of our project is to explore the efficiency of different Genetic Algorit
 
 \section{Background}
 \subsection{Genetic Algorithms}
-Genetic Algorithms (GA) are optimization algorithms inspired by the process of natural selection and biological evolution. They are widely used to solve complex optimization and search problems in various domains.
+Genetic Algorithms (GA) are optimization algorithms inspired by the process of natural selection and biological evolution. They are widely used to solve complex optimization and search problems in various domains. 
+Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
+\textit{``Genetic Algorithms (GAs) were selected for their ability to handle complex combinatorial optimization problems [...] and to encode domain-specific constraints"} (Section 1).
 
 The core steps of a typical genetic algorithm can be described as follows:
 \begin{itemize}
@@ -67,26 +69,21 @@ Simply use the section and subsection commands, as in this example document! Wit
 
 First you have to upload the image file from your computer using the upload link in the file-tree menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
 
-Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
-
-\subsection{How to add Tables}
-
-Use the table and tabular environments for basic tables --- see Table~\ref{tab:widgets}, for example. For more information, please see this help article on \href{https://www.overleaf.com/learn/latex/tables}{tables}.
-
-\begin{table}
-\centering
-\begin{tabular}{l|r}
-Item & Quantity \\\hline
-Widgets & 42 \\
-Gadgets & 13
-\end{tabular}
-\caption{\label{tab:widgets}An example table.}
-\end{table}
+    Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
 
 \section{Supervised Learning with Jenetics}
 \subsection{Introduction}
-My objective was to create an AI player based on a GA using human game-play data. Due to constrained optimization (e.g., state / action of the game), I found Genetic Algorithms to be a perfect choice for this task \cite{popescu-2025} . For this, I chose the Jenetics library. 
+My objective was to create an AI player based on a GA using human game-play data. For this, I chose the Jenetics library. 
 
+\subsection{Jenetics}
+Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
+\subsection{Jenetics Library Key Features:}
+\begin{itemize}
+    \item \textbf{Evolutionary Engine}: Automatically evolves over generations via Darwinian principles
+    \item \textbf{Domain-Agnostic Design}: Works with any optimization problem (e.g. game strategy in this case)
+    \item \textbf{Built-in Operators}: Selection (e.g. Tournament), Crossover (e.g. Single-point), Mutation (e.g. Gaussian)
+\end{itemize}
+For details of the implementation, refer to \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
 \subsection{How to add Citations and a References List}
 
 You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
@@ -101,4 +98,3 @@ We hope you find Overleaf useful, and do take a look at our \href{https://www.ov
 \bibliography{sample}
 
 \end{document}
-
