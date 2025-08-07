@@ -27,7 +27,7 @@ class AIPlayerThread extends Thread {
     public static final int TICK_TIME = 300;
 
     private final Game      game;
-    private final AIPlayer  player;
+    private final AIPlayer player;
 
     public AIPlayerThread(AIPlayer player, Game game) {
         super("AIPlayerThread for player " + player.hashCode());

@@ -15,30 +15,28 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+ *//*
+
 package games.homeship.robomazeblast.server;
 
 import games.homeship.robomazeblast.Main;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.DOWN;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.EXPLODING;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.LEFT;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.NONE;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.RIGHT;
-import static games.homeship.robomazeblast.server.Player.MoveDirection.UP;
 import games.homeship.robomazeblast.server.api.Element;
 import games.homeship.robomazeblast.server.api.Explodable;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
+*/
 /**
  * An AI-controlled player. The AI uses a modified A* algorithm for path
  * finding.
  *
  * @author Kai Ritterbusch
  * @author Christian Lins
- */
-class AIPlayer extends Player {
+ *//*
+
+
+class AIPlayerProton extends Player {
 
   private static final long serialVersionUID = -5235279588090879189L;
 
@@ -47,14 +45,16 @@ class AIPlayer extends Player {
   private transient Playground playground = null;
   private transient AIPlayerThread playerThread;
 
-  /**
+  */
+/**
    * No-arg constructor required for serialization.
-   */
-  protected AIPlayer() {
+   *//*
+
+  protected AIPlayerProton() {
 
   }
 
-  public AIPlayer(Game g, Playground playground) {
+  public AIPlayerProton(Game g, Playground playground) {
     super(g, "KI-Knecht");
 
     this.nickname += hashCode();
@@ -68,20 +68,24 @@ class AIPlayer extends Player {
     playerThread = new AIPlayerThread(this, g);
   }
 
-  /**
+  */
+/**
    * Pass start() to the associated AIPlayerThread.
-   */
+   *//*
+
   public void start() {
     assert playerThread != null;
     playerThread.start();
   }
 
-  /**
+  */
+/**
    * Search for explodable Elements in Element[]
    *
    * @param elements
    * @return
-   */
+   *//*
+
   private int containsExplodable(Element[] elements) {
     int explodables = 0;
 
@@ -93,13 +97,15 @@ class AIPlayer extends Player {
     return explodables;
   }
 
-  /**
+  */
+/**
    * Check if Element[] contains another element
    *
    * @param elements
    * @param c
    * @return true if Element[] contains c
-   */
+   *//*
+
   private boolean contains(Element[] elements, Element c) {
     for (Element e : elements) {
       if (c.equals(e)) {
@@ -110,10 +116,12 @@ class AIPlayer extends Player {
     return false;
   }
 
-  /**
+  */
+/**
    * Method is called when AIPlayer dies. Sets this.isDead to true and removes
    * player from gamelist
-   */
+   *//*
+
   public void die() {
     this.isDead = true;
     this.game.removePlayer(this);
@@ -154,22 +162,26 @@ class AIPlayer extends Player {
     return imgPath;
   }
 
-  /**
+  */
+/**
    * Returns living status of the Player
    *
    * @return
-   */
+   *//*
+
   public boolean isDead() {
     return this.isDead;
   }
 
-  /**
+  */
+/**
    * Determines if the given point is a possible target zone, that means has
    * explodable neighbors.
    *
    * @param pnt
    * @return
-   */
+   *//*
+
   private boolean isTargetZone(Point pnt) {
     // Determine all possible neighbors...
     // _ | X | _
@@ -208,9 +220,11 @@ class AIPlayer extends Player {
     return el[0] instanceof Extra;
   }
 
-  /**
+  */
+/**
    * Calculates a path to a possible bombing spot
-   */
+   *//*
+
   private List<int[]> calculateTargetPath() {
     // The A* Algorithm
     List<int[]> openNodes = new ArrayList<int[]>(); // Not yet visited nodes
@@ -296,12 +310,14 @@ class AIPlayer extends Player {
     return null;
   }
 
-  /**
+  */
+/**
    * Calculate escape route
    *
    * @param bomb
    * @return
-   */
+   *//*
+
   private List<int[]> calculateHidePath(Element bomb) {
     if (bomb == null)
       return null;
@@ -381,12 +397,14 @@ class AIPlayer extends Player {
     return null;
   }
 
-  /**
+  */
+/**
    * Checks if bomb is near the player.
    *
    * @param bomb
    * @return null if no Bomb is found
-   */
+   *//*
+
   private Element checkForBomb(Point bomb) {
     int matrixX = this.gridX;
     int matrixY = this.gridY;
@@ -419,13 +437,15 @@ class AIPlayer extends Player {
     return null;
   }
 
-  /**
+  */
+/**
    * Moves player
    *
    * @param dx
    * @param dy
    * @return true if player moved
-   */
+   *//*
+
   private boolean wannaMove(int dx, int dy) {
     if (Main.Debugging)
       System.out.println(this.nickname + " walks " + dx + "/" + dy);
@@ -439,9 +459,11 @@ class AIPlayer extends Player {
     return moved;
   }
 
-  /**
+  */
+/**
    * A small step for AI... moving of the Player.
-   */
+   *//*
+
   public void tick() {
     if (!this.game.isRunning())
       return;
@@ -481,3 +503,4 @@ class AIPlayer extends Player {
   }
 
 }
+*/

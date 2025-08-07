@@ -119,6 +119,13 @@ public class Game implements Serializable {
         return true;
     }
 
+    public boolean addHumanPlayer(Session session, String nickname) {
+        RecordablePlayer player = new RecordablePlayer(this, nickname);
+        // ... rest of addPlayer logic ...
+        return addPlayer(player);
+    }
+
+
     /**
      * Returns session of the creator of the Game.
      *
