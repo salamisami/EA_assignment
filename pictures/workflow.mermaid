@@ -1,0 +1,10 @@
+---
+config:
+  theme: 'neutral'
+---
+graph TD
+    A[Record Human Gameplay] --> B[Seed Initial Population]
+    B --> C[Run GA Tournament]
+    C --> D[Update Elo Ratings]
+    D --> E[Adjust Parameters]
+    E --> C
