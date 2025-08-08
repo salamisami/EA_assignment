@@ -1,12 +1,20 @@
 \documentclass[sigconf]{acmart} %Recommended doc class from Lins;
+\acmConference[Robo-Maze Blast Project]{
+	University for Applied Sciences Hamburg\\
+	Department of Computer Science}{2025}{Hamburg, Germany}
+% Remove conference-specific formatting
+\settopmatter{printacmref=false}  % Disables "ACM Reference Format"
+\setcopyright{none}               % Removes copyright notice
 
+\acmBooktitle{}                   % Removes booktitle
+\acmDOI{}                         % Removes DOI
+\renewcommand{\acmPrice}{}        % Removes price
 % Language setting
 % Replace `english' with e.g. `spanish' to change the document language
 \usepackage[english]{babel}
 \usepackage[ruled,vlined]{algorithm2e}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
-
 
 % Useful packages
 \usepackage{amsmath}
@@ -41,7 +49,7 @@ Genetic Algorithms (GA) are optimization algorithms inspired by the process of n
 One of those domains is the gaming side as in this paper. 
 \begin{figure}
       \centering
-      \includegraphics[width = 1.25\linewidth]{pictures/possibleActionsPlayer.png}
+      \includegraphics[width = 1\linewidth]{pictures/possibleActionsPlayer.png}
       \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
       \end{figure}
 Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
@@ -131,7 +139,7 @@ While acknowledging that direct skill transfer between a 3D fighting game (Tekke
 %\text{Mutation}(x) = x + \mathcal{N}(0,\, \sigma^2) \quad \text{where } \sigma = 0.2
 %\]
 \subsection{Jenetics}
-Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
+Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into re ble software components, enabling users to evolve solutions without implementing a GA from scratch. 
 \subsection{Jenetics Framework}
 \label{subsec:jenetics}
 
@@ -140,7 +148,7 @@ We selected it for supervised learning because:
     \item \textbf{Prior experience}: We'd successfully used it in previous labs
     \item \textbf{Java compatibility}: Integrated smoothly with our game codebase
     \item \textbf{Rapid adjustments}: Changing parameters takes minutes instead of hours
-    \item \textbf{Easy versioning}: Git checkpoints for different configurations
+    \item \textbf{Easy versioning}: Git checkpoints for different \textsf{conf}igurations
 \end{itemize}
 
 \textbf{Key Features We Utilized:}
@@ -249,17 +257,75 @@ This simple number format allows the AI to learn from many such records. In the 
 	\nl\textsc{Save}(filename):
 	Write all recordings to file\;
 \end{algorithm}
-\subsection{How to add Citations and a References List}
 
-You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
+\subsection{Data Augmentation for Generating a Training Dataset}
+\label{subsec:data_augmentation}
 
-If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
+To overcome the limitations of this small sample size, a common challenge in data-intensive tasks like training an AI, we would apply data augmentation techniques. Specifically, we would modify this training data by mirroring gameplay across both the X and Y axes. This simple yet effective method quadruples our dataset, generating new, valid scenarios that maintain the original gameplay logic. As shown in the example below, a leftward movement on the original grid (e.g., player at 0.35) becomes a rightward movement in the mirrored version (0.65), and a downward movement becomes an upward movement (0.40). This process not only increases the quantity of our data but also enhances its diversity, exposing the AI to a broader range of game states and actions.
 
-\subsection{Good luck!}
+The use of geometric transformations like mirroring is a well-established method for creating new training samples from a limited dataset \cite{perez2017effectiveness}. This technique is especially useful in supervised learning contexts where the underlying data structure, such as a coordinate system, can be logically transformed without altering the class labels or core relationships within the data.
 
-We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the \textbf{Contact us} link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
+Looking ahead, we would also explore the possibility of adding additional labels to our data to provide more context. This could include a numerical rating, similar to the Elo system, to grade the quality of a specific action or the player's performance during a session. This would provide the AI with richer context, such as classifying a move as "defensive" or "aggressive," further refining the learning process. This would involve a server-side database to record match outcomes and calculate a lasting Elo rating for different AI player implementations, allowing for a more nuanced and competitive evaluation of fitness over generations.
 
-\bibliographystyle{alpha}
-\bibliography{sample}
+\subsection{Hypothetical Implementation with Jenetics}
+\label{subsec:hypothetical_jenetics}
 
+While not implemented due to time constraints, this section outlines the planned pseudocode structure for the Jenetics-based evolutionary approach. The design reflects best practices in GA configuration with domain-specific adjustments for game AI development.
+
+\label{subsec:hypothetical_jenetics}
+
+\begin{algorithm}[t]
+	\caption{Proposed Jenetics Workflow}
+	\label{alg:jenetics_hypothetical}
+	\DontPrintSemicolon
+	\SetKwFunction{Build}{build}
+	\SetKwFunction{Collect}{collect}
+	
+	\textbf{Engine Configuration:}\;
+	engine $\leftarrow$ Engine.builder(fitnessFunction, chromosome)\;
+	\nl.populationSize(500)          \tcp*{Balanced diversity/computation}\;
+	\nl.optimize(Optimize.MAXIMUM)   \tcp*{Maximize fitness score}\;
+	\nl.offspringSelector(new TournamentSelector<>(5))\;
+	\nl.survivorsSelector(new EliteSelector<>(0.2))\;
+	\nl.alterers(\;
+	\nl\ \ new Mutator<>(0.12),      \tcp*{Domain-adjusted mutation}\;
+	\nl\ \ new SinglePointCrossover<>(0.85)\;
+	\nl )\;
+	\nl.\Build()\;
+	
+	\BlankLine
+	\textbf{Evolution Execution:}\;
+	result $\leftarrow$ engine.stream()\;
+	\nl.limit(by(SteadyFitness(15, 50))) \tcp*{Stop when plateau detected}\;
+	\nl.peek(stat $\rightarrow$ logGeneration(stat)) \tcp*{Progress tracking}\;
+	\nl.\Collect(EvolutionResult.toBestGenotype())\;
+\end{algorithm}
+
+\subsubsection{Design Rationale}
+The parameter selections balance exploration/exploitation tradeoffs against computational constraints:
+
+\begin{enumerate}
+	\item \textbf{Population Size (500)}: 
+	Hypothesized to maintain solution diversity while remaining computationally feasible (estimated 35min/generation). Larger than default to counteract premature convergence in complex game state spaces.
+	
+	\item \textbf{Mutation Rate (0.12)}: 
+	Intentionally higher than Jenetics' default (0.01) to prevent behavioral local optima. This would encourage exploration of unconventional strategies (e.g., calculated risk-taking) that might outperform conservative play.
+	
+	\item \textbf{Steady State Termination}:
+	Planned to use fitness plateau detection (15 generations without 0.5\% improvement) rather than fixed generations. This adaptive approach prevents unnecessary computation after convergence.
+	
+	\item \textbf{Tournament Size (5)}: 
+	Maintained at Jenetics' recommendation. Altering this would require simultaneous adjustment of selection pressure metrics - changing multiple interdependent parameters was avoided per \cite{back2000evolutionary}.
+	
+	\item \textbf{Elite Retention (20\%)}: 
+	Conservative preservation of top performers ensures successful tactics propagate while allowing population diversity. This follows standard practice in steady-state evolution \cite{dejong2006evolutionary}.
+\end{enumerate}
+
+
+\subsection{Outlook}
+This project encountered several limitations that merit consideration in future work. The primary constraint was the delayed commencement of the implementation phase, attributable to initial uncertainties regarding project specifications and concurrent academic commitments, including a separate laboratory project and examination during the final month. Initiating development 2-3 months earlier upon clarification of assignment parameters would have facilitated more comprehensive implementation.
+
+A critical oversight involved underestimating the integration complexity between the developed AI agent and other project components. Consequently, the planned comparative evaluation against other group members' agents could not be executed. 
+
+Despite these constraints, the project yielded valuable insights regarding data augmentation methodologies, Elo system applications in artificial intelligence, and practical experience with the Jenetics framework. These learnings establish a foundation for future work, which should prioritize agent implementation completion and systematic tournament-based evaluation.
 \end{document}
