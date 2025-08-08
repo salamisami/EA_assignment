@@ -52,7 +52,7 @@ Bomberman + Evolutionary algorithmens + Tournament Arc goes brr
 The general goal of Bomberman is to complete the levels by strategically placing bombs in order to kill enemies and destroy blocks. Some blocks in the path can be destroyed by placing bombs near it, and as the bombs detonate, they will create a burst of vertical and horizontal lines of flames. Except for indestructible blocks, contact with the blast will destroy anything on the screen.
 
 \subsection{Our Goal}
-The aim of our project is to explore the efficiency of different Genetic Algorithms to develop 3 agents with strategic competence in the Robo Maze Blast scope, and to compare them by making the agents fight against each other and observe which agent outlives the others more frequently.
+The aim of our project is to explore the efficiency of different Genetic Algorithms to develop 3 agents with strategic competence in the Robo Maze Blast scope, to compare them by making the agents fight against each other and observe which agent outlives the others more frequently, and overall to obtain a deeper understanding of Genetic Algorithms.
 
 \section{Background}
 \subsection{Genetic Algorithms}
@@ -84,29 +84,65 @@ These steps are repeated for a number of times until an ending criterion is reac
 
 
 \subsection{Robo Maze Blast's Default AI Agent}
-The game has its own AI agents that will play against the player in the absence of in-real-life adversaries. They share a common behavior and reasoning that can be visualized with the finite-state machine, as shown in 
-Figure 3.
+The game has its own AI agents that will play against the player in the absence of in-real-life adversaries. They share a common behavior and reasoning that can be visualized with the finite-state machine shown in 
+the figure down below:
 
-%\begin{figure}
-%\includegraphics[width = 1\linewidth]{pictures/bomberman_finite_state_machine 1.png}
-%\caption{\label{fig:bomberman_finite_state_machine 1}Finite-state machine of game's AI agent}
-%\end{figure}
+\begin{figure}[H]
+\includegraphics[width = 1\linewidth]{pictures/bomberman_finite_state_machine 1.png}
+\caption{\label{fig:bomberman_finite_state_machine 1}Finite-state machine of game's AI agent}
+\end{figure}
 
+These agents have a rule-based behavior complex enough to allow enjoyable play, though one could consider their strategy a little lacking when it comes to check other users' behavior and drops. 
 
-
-\section{Fine-tuning agent behaviors with jenetics}
-
-
-\subsection{Differential Evolution}
+\section{fine-tuning agent behavior with Differential Evolution}
+\label{de_train}
 
 \subsection{Agent Behavior}
+This agent will add its own twist on the default AI agent of the game by implementing additional behavior that will be triggered only if certain conditions are reached, i.e. the agent will be given some 'personality traits scores' that will determine how often certain additional actions are done.
+
+These scores are then fine-tuned through DE by repatedly challenging the default AI agent of the game, to make it so that self-harming actions are to be avoided, well-rewarding actions are to be preferred, and actions that are useful if sparingly done but damaging if abused are calibrated with care.
+
+The evolution process optimizes a three-dimensional parameter vector $\mathbf{x} = (x_1, x_2, x_3)$ where each component is bounded in $[0,1]$:
+\begin{itemize}
+    \item \textbf{$x_1$ Aggression}: will trigger actions like randomly dropping bombs on the way to the target
+    \item \textbf{$x_2$ Caution}: will check for bombs at every step and create longer escape paths
+    \item \textbf{$x_3$ Exploration}: will prioritize blowing up walls over anything
+\end{itemize}
+
+These values will be assigned once at the creation of the agent and during the core movement decision functions \textit{tick()} and \textit{findTargetPath()} a random number will be extracted, compared to the value and, if less or equal, will trigger said action.
+
+\subsection{Differential Evolution}
+Differential Evolution (DE) is a single-objective optimization algorithm proposed by Storn and Price in December 1995.\cite{qiita_DE} 
+
+It is essentially the same as a genetic algorithm and is included in frameworks of evolutionary computation, but its distinctive feature is that it is not inspired by biological evolution or biological behavior.
+
+It is not some cutting-edge algorithm that is way better than GA, it is actually pretty old, but it is a popular algorithm because it is simple yet reasonably effective. 
+
+The steps of a Differential Evolution Algorithm are similar to the one of a typical Genetic Algorithm.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width = 0.5\linewidth]{pictures/Differential-evolution-algorithm-steps.png}
+    \caption{\label{fig:Differential-evolution-algorithm-steps} Steps of a Differential Evolution Algorithm}
+\end{figure}
+
+However:
+\begin{itemize}
+    \item The genotype is some form of real-valued vector, so there is no need for encoding and decoding from/to chromosomal representation
+    \item The mutation and crossover operations make use of the difference between two or more vectors in the population to create a new vector, typically by adding some random proportion of the difference to one of the existing vectors, plus a small amount of random noise.
+
+\end{itemize}
+
+
 
 \subsection{The Reward Metrics}
-The fitness function determines which agent behaviors are rewarded, and which are penalized.
-\begin{table}[htbp]
+The fitness function determines which agent behaviors are rewarded, and which are penalized. I wanted to reward proactive behavior, like exploding walls and killing players, while severely penalizing death and suicide. Also, a 'peaceful' win is not rewarded as much as an 'aggressive' win.
+
+The rewards are inspired by those in \cite{essay107351}
+\begin{table}[H]
 \centering
 
-\caption{Agent Reward and Penalty Values}
+\caption{\label{tab:reward_values}Agent Reward and Penalty Values}
 
 \begin{tabular}{l|l}
 \textbf{Action} & \textbf{Points}  \\
@@ -119,16 +155,342 @@ Blow Wall & +150 (per wall) \\
 \hline
 Kills & +750 (per player) \\
 \hline
-Death  & -500  \\
+Agent Death  & -500  \\
 \hline
-Suicide & -500 \\
+Agent Suicide & -500 (subtracted on top of death) \\
 \hline
-Win without kills & +200  \\
+Agent win without kills & +200  \\
 \hline
-Win with kills & +1000  \\
+Agent win with kills & +1000  \\
 \hline
 \end{tabular}
 \end{table}
+
+\subsection{The Parameter Choice}
+
+The DE algorithm is configured with the following parameters:
+
+\begin{table}[htbp]
+\centering
+\caption{Differential Evolution Configuration Parameters}
+\begin{tabular}{c|c}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Population Size & 20 \\
+\hline
+Scale Factor (F) & 0.5 \\
+\hline
+Crossover Rate (CR) & 0.75 \\
+\hline
+Generations & 100 \\
+\hline
+Optimization Goal & Maximize \\
+\hline
+\end{tabular}
+\end{table}
+
+There was no need to increase the population size, as the same results were achieved with a bigger population, thus considered unnecessary.
+
+Additionally, a one can see, here there is no mutation rate as one would expect from Genetic Algorithms. 
+
+This is because the "mutation" in DE is actually differential mutation: it is not random perturbation (like in GA), but a directed search based on population differences.
+
+Adding a mutation rate would actually break the DE algorithm because it would introduce random noise into the carefully designed differential mutation process.
+
+\subsection{The Game's Differential Evolution Algorithm}
+The DE algorithm follows the classic DE/rand/1/bin strategy. Since the Jenetics library does not offer a Differential Evolution engine, I decided to implement it through a custom \textit{DEAlterer} class.
+
+For each generation $g$ and individual $i$, the algorithm performs the following steps:\\
+\begin{itemize}
+    \item \textbf{Mutation}: Three distinct individuals $\mathbf{x}_{r1,g}$, $\mathbf{x}_{r2,g}$, $\mathbf{x}_{r3,g}$ are randomly selected from the population, where $r1 \neq r2 \neq r3 \neq i$. The mutant vector is generated as:
+
+\begin{equation}
+\mathbf{v}_{i,g} = \mathbf{x}_{r1,g} + F \cdot (\mathbf{x}_{r2,g} - \mathbf{x}_{r3,g})
+\end{equation}
+    \item \textbf{Crossover}:
+A trial vector $\mathbf{u}_{i,g}$ is created through binomial crossover:
+
+\begin{equation}
+u_{j,i,g} = \begin{cases}
+v_{j,i,g} & \text{if } \text{rand}(0,1) \leq CR \\
+x_{j,i,g} & \text{otherwise}
+\end{cases}
+\end{equation}
+
+where $j \in \{1,2,3\}$ represents each parameter dimension.
+\item \textbf{Bounds Handling}:
+All parameters are constrained to $[0,1]$ using clamping:
+
+\begin{equation}
+u_{j,i,g}^{bounded} = \max(0, \min(1, u_{j,i,g}))
+\end{equation}
+\item \textbf{Selection}:
+The trial individual replaces the target individual only if it exhibits superior fitness:
+
+\begin{equation}
+\mathbf{x}_{i,g+1} = \begin{cases}
+\mathbf{u}_{i,g} & \text{if } f(\mathbf{u}_{i,g}) \geq f(\mathbf{x}_{i,g}) \\
+\mathbf{x}_{i,g} & \text{otherwise}
+\end{cases}
+\end{equation}
+\end{itemize}
+\subsection{Modified Classes and Functions}
+
+During the implementation of the agent, some changes were needed to be applied to the original codebase. I wanted to keep a minimal approach and only modify what was needed in order to achieve my goal, i.e. the following classes:
+
+\subsubsection{\textbf{Player.java}}
+\begin{itemize}
+    \item \textbf{Added Variables:}
+    \begin{itemize}
+        \item \texttt{public int wallsBlown = 0;}
+        \item \texttt{public int playersKilled = 0;}
+        \item \texttt{public Double totalScore = 0.0;}
+    \end{itemize}
+    \item \textbf{Modified Fields:}
+    \begin{itemize}
+        \item \textbf{Original:} \texttt{private final List<Bomb> bombs = new ArrayList<>();}
+        \item \textbf{Modified:} \texttt{protected List<Bomb> bombs = new ArrayList<>();}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{\textbf{AIPlayer.java}}
+\begin{itemize}
+    \item \textbf{Original:} \texttt{private int containsExplodable(Element[] elements)}
+    \item \textbf{Modified:} \texttt{protected int containsExplodable(Element[] elements)}
+\end{itemize}
+
+\subsubsection{\textbf{ExplosionConsumer.java}}
+\begin{itemize}
+    \item Scoring logic added in the \texttt{processExplElement()} method:
+    \begin{itemize}
+        \item \texttt{bombOwner.wallsBlown++} for each wall destruction 
+        \item \texttt{bombOwner.playersKilled++} for player elimination
+        \item \texttt{((Player)e).totalScore -= 500} for death penalty
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{\textbf{Bomb.java}}
+\begin{itemize}
+    \item The bomb explosion mechanism remains unchanged; however, the scoring is handled upstream in \texttt{ExplosionConsumer}\\
+\end{itemize}
+
+Most of the changes are actually visibility modification to allow the Bomb class to access the Player's variables during the bomb's drop and explosion.
+
+
+\subsubsection{\textbf{New Classes Added}}
+\begin{itemize}
+    \item \textbf{AIPlayer\_DE.java:} Extends \texttt{AIPlayer} with evolutionary 'personality parameters' (aggressiveness, caution, exploration) and scoring logic.
+    \item \textbf{DE\_AI Package:} Contains three new classes:
+    \begin{itemize}
+        \item \texttt{DifferentialEvolution.java} - Main evolution engine
+        \item \texttt{DEAlterer.java} - Custom DE implementation
+        \item \texttt{Util.java} - CSV writing utilities for evolution statistics
+    \end{itemize}
+\end{itemize}
+
+\subsection{Fitness Evaluation}
+Each candidate solution undergoes fitness evaluation through game simulation. 
+The fitness function $f(\mathbf{x})$ is computed by:\\
+
+\begin{enumerate}
+    \item Instantiating an \texttt{AIPlayer\_DE} with parameters $\mathbf{x}$
+    \item Running a headless game simulation with 3 opponent AI players
+    \item Computing the total reward based on the scoring system (Table~\ref{tab:reward_values})
+    \item Returning the final score as fitness value
+\end{enumerate}
+
+
+The fitness function is calculated as follows:
+
+\begin{equation}
+f(\mathbf{x}) = S_{movement} + S_{bombs} + S_{walls} + S_{kills} + S_{death} + S_{bonus}
+\end{equation}
+
+Whose scores being, as determined in Table \ref{tab:reward_values}:
+
+\begin{align}
+S_{movement} &= n_{moves} \cdot 1 \\
+S_{bombs} &= n_{bombs} \cdot 75 \\
+S_{walls} &= n_{walls} \cdot 150 \\
+S_{kills} &= n_{kills} \cdot 750 \\
+S_{death} &= n_{deaths} \cdot (-500) \\
+S_{bonus} &= \begin{cases}
+200 & \text{if } n_{kills} = 0 \text{ and } \text{alive} \\
+1000 & \text{if } n_{kills} > 0 \text{ and } \text{alive} \\
+0 & \text{otherwise}
+\end{cases}
+\end{align}
+
+And
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|}
+     \hline
+    \textbf{Variable} & \textbf{Description} \\
+    \hline
+$n_{moves}$ & Number of successful moves executed by the agent \\
+$n_{bombs}$ & Number of bombs placed by the agent \\
+$n_{walls}$ & Number of destructible walls destroyed by agent's bombs \\
+$n_{kills}$ & Number of enemy players eliminated by agent's bombs \\
+$n_{deaths}$ & Number of times the agent died (either 0 or 1 per game) \\
+\hline
+    \end{tabular}
+    \caption{Parameter Description}
+    \label{tab:placeholder}
+\end{table}
+
+The simulation runs for a maximum of 5000 ticks per game. Games terminate when only one player remains alive or the maximum tick limit is reached.
+
+\subsection{Convergence and Termination}
+The evolution process terminates after 100 generations, collecting the best phenotype using the \texttt{toBestPhenotype()} collector. The final result provides:
+
+\begin{itemize}
+    \item Optimal parameter configuration
+    \item Associated fitness value
+    \item Generation history and convergence data
+\end{itemize}
+
+The DE algorithm's ability to handle continuous parameter spaces and its robust convergence properties make it well-suited for optimizing the AI agent's behavioral parameters in the complex, multi-objective game environment.
+
+\subsection{Results}
+
+These are the results from the evolution process:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{pictures/Graph_5_75.png}
+    \caption{\label{fig:Graph_575} Evolution Results}
+    
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{pictures/Graph_min_max.png}
+    \caption{\label{fig:Graph_min_max}Maximum and Minimum Scores for each Generation}
+\end{figure}
+
+The most significant finding is the discovery of an exceptional score in generation 5, achieving a fitness of 2700.0 with parameters:
+\begin{itemize}
+    \item Aggressiveness = 0.000
+    \item Caution = 0.576
+    \item Exploration = 0.884
+\end{itemize}
+This completely passive strategy outperformed all other configurations by a factor of \textbf{4.3×}.
+
+However, this solution was immediately lost from the population and never recovered, suggesting that probably the high score was not because of the tuning itself, and the fact that it scored so high was but a mere coincidence that is unlikely to repeat. Thus, making this specific parameter combination an outlier. 
+
+As shown in Figure \ref{fig:Graph_575}, the \textit{aggressiveness} parameter converges to approximately 0.696135 by generation 29, while \textit{caution} and \textit{exploration} continue fine-tuning throughout the evolution, reaching near-final values by generation 53.
+
+The final parameters are as follows:
+
+\begin{itemize}
+    \item Aggressiveness: $x_1 = 0.696135$ (moderate-high)
+    \item Caution: $x_2 \approx 0.856808$ (very high)  
+    \item Exploration: $x_3 \approx 0.566004$ (moderate)
+\end{itemize}
+
+This convergence pattern shows that the parameters (F=0.5, CR=0.75) provide a good exploration of the solution space, allowing for more nuanced parameter optimization. \\
+
+The maximum fitness shows a distinct improvement pattern with one remarkable outlier:
+
+\begin{align}
+f_{max}(gen \leq 4) &= 483.0 \\
+f_{max}(gen = 5) &= 2700.0 \quad (+2217 \text{ outlier}) \\
+f_{max}(gen = 22-28) &= 628.0 \quad (+145 \text{ improvement}) \\
+f_{max}(gen = 96-100) &= 628.0 \quad (\text{rediscovered optimum}) \\
+\end{align}
+
+
+The fitness variance analysis shows:
+\begin{align}
+\text{Generational minimum fitness range:} &\quad [-147, 52] \\
+\text{Generational maximum fitness plateau:} &\quad 628 \text{ (generations 96-100)}
+\end{align}
+
+The final convergent solution suggests optimal parameters of:
+\begin{itemize}
+    \item \textbf{Aggressiveness:} 0.696 (69.6\%) - Moderate-to-high offensive behavior
+    \item \textbf{Caution:} 0.857 (85.7\%) - Very high survival priority
+    \item \textbf{Exploration:} 0.566 (56.6\%) - Balanced exploration-exploitation behavior
+\end{itemize}
+
+\subsection{The Impact of a low Mutation and Crossover Rate}
+An additional parameter set was included in the evolution process as follows:
+
+\begin{table}[htbp]
+\centering
+\caption{Differential Evolution Configuration Parameters}
+\begin{tabular}{c|c}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Population Size & 20 \\
+\hline
+Scale Factor (F) & 0.2 \\
+\hline
+Crossover Rate (CR) & 0.25 \\
+\hline
+Generations & 100 \\
+\hline
+Optimization Goal & Maximize \\
+\hline
+\end{tabular}
+\end{table}
+
+In this configuration, the scale factor and the crossover rates are very low, which, by making our agent fight the default AI player, produced the following results:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{pictures/Graph_2_25.png}
+    \caption{\label{fig:Graph_2_25} Evolution Results}
+    
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{pictures/Graph_minmax_225.png}
+    \caption{\label{fig:min_max_225}Maximum and Minimum Scores for each Generation}
+    
+\end{figure}
+
+As easily visible in the plot, all the parameters by the 23rd generation converge to a fixed value, and \textit{aggressiveness} converges as early as the 9th generation.
+
+The final parameters are as follows:\\
+
+\begin{itemize}
+    \item Aggressiveness: $x_1 = 0.997044$ (near maximum)
+    \item Caution: $x_2 \approx 0.402339$ (moderate)  
+    \item Exploration: $x_3 \approx 0.558742$ (moderate-high)\\
+\end{itemize}
+
+
+This early convergence suggests that the parameters (F=0.2, CR=0.25) do not allow a sufficient exploration of the solution space. Even though the maximum fitness shows a clear improvement pattern, especially in the first few generations:
+
+\begin{align}
+f_{max}(gen \leq 21) &= 478.0 \\
+f_{max}(gen = 22) &= 628.0 \quad (+150 \text{ improvement}) \\
+f_{max}(gen \geq 72) &= 632.0 \quad (+4 \text{ final improvement})
+\end{align}
+\\
+The fitness plateaus at 632.0 just like the parameters, which is a good number but not as high as anticipated.
+
+The fitness variance analysis  shows additionally that:\\
+\begin{align}
+\text{Generational minimum fitness range:} &\quad [-147, 52] \\
+\text{Generational maximum fitness plateau:} &\quad 632 \text{ (generations 83-100)}\\
+\end{align}
+
+The wide range in minimum fitness indicates population diversity in poor solutions, while the maximum fitness stagnation suggests the algorithm failed to find better solutions after generation 83.
+
+\subsection{Final Considerations}
+
+The evolution process showed that cautious behavior is highly incentivized, while surprisingly aggressiveness is not as encouraged as initially expected, just like explorative behavior.
+
+This highly clashes with the results from low crossover and fitness rate. These not only led to early convergence, but rewarded extreme aggression and exploration.
+
+Even though the parameters are highly different, the final score function fluctuates very little (628 vs 632), with only one extremely high-scoring exception.
 
 
 \section{Evolutionary Training with Human Data and Jenetics}
@@ -426,13 +788,13 @@ For future work on this specific component, we recommend:
 \section{Author Contributions}
 The work presented in this report represents a collaborative effort. Individual contributions to specific sections are detailed below:
 \textbf{Widmann Lukas}: Section \ref{sec:tree_train} "Tree-Based Genetic Programming"
-\newline \textbf{Dogà Sara}: [To be completed Differential Evolution implementation] 
-y\newline \textbf{Askar Sami}: \newline
+\newline \textbf{Dogà Sara}: Section \ref{de_train} "Fine-tuning Agent Behavior with Differential Evolution"] 
+\newline \textbf{Askar Sami}: \newline
 Section \ref{sec:evo_train} "Evolutionary Training with Human Data and Jenetics" 
 \newline Maintained project repository and set up GitHub workflow \cite{rmb_github}
 \newline Figure \ref{fig:possibleActionsPlayer}, Figure \ref{fig:workflow}
 
-	 \textbf{Joint Work}: Introduction mostly Dogà Sara with additions from Askar Sami;
+	 \textbf{Joint Work}: Introduction by mostly Dogà Sara with additions from Askar Sami;
 	 
 	  Conclusion and Outlook Team reflection: Mostly Lukas Widman with additions from Askar Sami
 
