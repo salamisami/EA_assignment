@@ -41,7 +41,7 @@ Genetic Algorithms (GA) are optimization algorithms inspired by the process of n
 One of those domains is the gaming side as in this paper. 
 \begin{figure}
       \centering
-      \includegraphics[width = 0.5, scale =1.5\linewidth]{pictures/possibleActionsPlayer.png}
+      \includegraphics[width = 1.25\linewidth]{pictures/possibleActionsPlayer.png}
       \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
       \end{figure}
 Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
@@ -68,14 +68,14 @@ These steps are repeated for a number of times until an ending criterion is reac
 The game has its own AI agents that will play against the player in the absence of in-real-life adversaries. They share a common behavior and reasoning that can be visualized with the finite-state machine, as shown in 
 Figure 3.
 
-\begin{figure}
-\includegraphics[width = 1\linewidth]{pictures/bomberman_finite_state_machine 1.png}
-\caption{\label{fig:bomberman_finite_state_machine 1}Finite-state machine of game's AI agent}
-\end{figure}
+%\begin{figure}
+%\includegraphics[width = 1\linewidth]{pictures/bomberman_finite_state_machine 1.png}
+%\caption{\label{fig:bomberman_finite_state_machine 1}Finite-state machine of game's AI agent}
+%\end{figure}
 
 
 
-\section{fine-tuning agent behaviors with jenetics}
+\section{Fine-tuning agent behaviors with jenetics}
 
 
 \subsection{Differential Evolution}
@@ -127,9 +127,9 @@ While acknowledging that direct skill transfer between a 3D fighting game (Tekke
     where $\Delta$ represents measurable skill advantage in Robo Maze Blast.
     }}
 \end{center}
-\[
-\text{Mutation}(x) = x + \mathcal{N}(0,\, \sigma^2) \quad \text{where } \sigma = 0.2
-\]
+%\[
+%\text{Mutation}(x) = x + \mathcal{N}(0,\, \sigma^2) \quad \text{where } \sigma = 0.2
+%\]
 \subsection{Jenetics}
 Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
 \subsection{Jenetics Framework}
@@ -176,44 +176,79 @@ This enables an iterative improvement cycles:
 \end{itemize}
 \noindent\textbf{Reference}: \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
 \subsection{Implementing Gameplay Recording: Code Changes for Data Collection}
-To implement supervised learning via Jenetics, high quality data is needed. A simple and intuitive appraoch to gather this data is to record a human players actions and the state of the game to gather data. Due to this modification to the player class was needed. Due to this the recordable Player class which is an extension to the player class is born. The key changes to the player class are summarized in \ref{alg:recording} the pseudo code. The changes include: 
+\label{subsec:recording}
+
+To train the AI using Jenetics, we first needed good quality gameplay data. The simplest way to get this data was to record what a human player does during a game - both their actions and the game situation at that moment. This required changes to the Player class, which led to creating the new \texttt{RecordablePlayer} class. The main changes are shown in Algorithm~\ref{alg:recording} and include:
+
 \begin{itemize}
-    \item \textbf{Recording trigger}: Modified movement/bomb methods to log actions
-    \item \textbf{State capture}: Added position normalization and bomb status flags
-    \item \textbf{Data serialization}: Output CSV format for GA compatibility
+	\item \textbf{Recording trigger}: Making the game log actions when players move or place bombs
+	\item \textbf{State capture}: Saving player position and bomb status in simple numbers
+	\item \textbf{Data export}: Saving all records to a CSV file for AI training
 \end{itemize}
+
+\textbf{Example from actual gameplay:}
+Imagine this situation during a game:
+\begin{itemize}
+	\item Player is at position (7, 12) in a 20x20 grid
+	\item Player can place a bomb (has bombs available)
+	\item There's a bomb nearby above the player
+\end{itemize}
+
+The \texttt{RecordablePlayer} would save this information as:\\
+\texttt{0.35, 0.60, 1.0, 1.0, -0.4, 5}
+
+\begin{center}
+	\begin{tabular}{|l|l|}
+		\hline
+		\textbf{Value} & \textbf{Meaning} \\ 
+		\hline
+		0.35 & Player is 35\% across the level (X position) \\ 
+		0.60 & Player is 60\% down the level (Y position) \\ 
+		1.0 & Bomb available \\ 
+		1.0 & Bomb nearby \\ 
+		-0.4 & Bomb is above player \\ 
+		5 & Player placed a bomb \\ 
+		\hline
+	\end{tabular}
+\end{center}
+
+This simple number format allows the AI to learn from many such records. In the future I would collect a sample trainings data set to train 
+
 \begin{algorithm}[t]
-\caption{RecordablePlayer Modifications}
-\label{alg:recording}
-\DontPrintSemicolon
-\SetKwFunction{GetState}{getStateVector}
-\SetKwFunction{Save}{saveRecordings}
-
-\caption{RecordablePlayer Extension}
-\textbf{Class} RecordablePlayer \textbf{extends} Player\;
-\nl\textbf{New Data:} 
-    recordings = [] \;
-    isRecording = false \tcp*{Recording toggle}
-
-\BlankLine
-\nl\textbf{Key Changes:}\;
-\nl \textbf{move(dx, dy)}:
-    super.move(dx, dy)\;
-    \If{isRecording}{mapToAction(dx, dy) \tcp*{Records movement}}
-
-\nl \textbf{placeBomb()}:
-    super.placeBomb()\;
-    \If{isRecording}{recordAction(BOMB) \tcp*{Records bomb placement}}
-
-\nl\textbf{State Capture (New)}:
-    state $\leftarrow$ [normX, normY, bombAvail, bombNear] \tcp*{Normalized }
-    record $\leftarrow$ state + action \;
-    recordings.add(record) \;
-
-\nl\textbf{Output (New)}:
-    \Save(filename) $\rightarrow$ Export recordings as CSV\;
+	\caption{RecordablePlayer Modifications}
+	\label{alg:recording}
+	\DontPrintSemicolon
+	\SetKwFunction{GetState}{getStateVector}
+	\SetKwFunction{Save}{saveRecordings}
+	
+	\textbf{Class} RecordablePlayer \textbf{extends} Player\;
+	\nl\textbf{New Data:} 
+	recordings = [] \;
+	isRecording = false \tcp*{Recording on/off switch}
+	
+	\BlankLine
+	\nl\textbf{Key Changes:}\;
+	\nl \textbf{move(dx, dy)}:
+	super.move(dx, dy)\;
+	\If{isRecording}{\textsc{LogMovement}(dx, dy) \tcp*{Records moves}}
+	
+	\nl \textbf{placeBomb()}:
+	super.placeBomb()\;
+	\If{isRecording}{\textsc{LogAction}(BOMB) \tcp*{Records bombs}}
+	
+	\BlankLine
+	\nl\textbf{New Methods:}\;
+	\nl\textsc{LogMovement}(dx, dy):
+	Convert dx/dy to direction\;
+	\textsc{LogAction}(direction)\;
+	
+	\nl\textsc{LogAction}(action):
+	state $\leftarrow$ [normX, normY, bombAvail, bombNear]\;
+	recordings $\leftarrow$ recordings + (state, action)\;
+	
+	\nl\textsc{Save}(filename):
+	Write all recordings to file\;
 \end{algorithm}
-
 \subsection{How to add Citations and a References List}
 
 You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
