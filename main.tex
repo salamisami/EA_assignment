@@ -19,6 +19,8 @@
 % Useful packages
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{alltt}
+
 \title{Robo-maze Blast Report}
 \author{Dogà Sara}
 \author{Widmann Lukas}
@@ -344,30 +346,34 @@ This approach was chosen due to its high flexibility. While the initial training
 \subsection{Design Decisions}
 
 The implementation of the algorithm is encapsulated in the GeneticPlayer class. This class does not inherit from the AIPlayer class, which already contains significant functionality. Inheritance was avoided because the setup of genetic programming differs significantly from "regular" genetic algorithms. GP uses a tree structure and consists of multiple components (functions, terminals, and constants). Terminals represent the leaf nodes of the tree, whereas functions branch out, increasing the complexity of the tree.The GeneticPlayer class contains an abstract static class called Operation, which serves as the base for all terminals and functions. The respective terminals and functions inherit from Operation. The terminals include basic movement operators such as MoveUp, MoveDown, MoveLeft, MoveRight, and Stay, which represent movements in the game along the x- and y-axes. Additional terminals include IsTargetZone, CheckForBomb, PlaceBomb, CheckForExtra, GetDistanceToEnemy, and three constant values. These terminals encapsulate functionality already implemented for the AIPlayer, allowing the GP to iterate over it. The constant values are arbitrary defaults that can be adjusted based on the algorithm's performance or goals.The algorithm also relies on two operations: GreaterThan and IfElse. GreaterThan has an arity of 2, meaning it compares two values, returning 1 if the first value is greater than the second and 0 otherwise. IfElse has an arity of 3. It checks whether the first value is greater than 0. If true, it forwards the value t[1]; otherwise, it forwards t[2].The core of the GP is the initializeGP method. In this method, functions and terminals are initialized, and the maximum tree depth is set. During the training phase, a depth of 5 was used, but this can be adjusted based on performance. The engine combines the algorithm's constraints with the fitness function. Parameters such as population size, mutation rate, and crossover rate can be manually adjusted depending on the algorithm's performance. The result performs the actual training by streaming the data and applying the constraint of the number of generations. Finally, the best strategy is returned.The fitness function is where the actual training occurs. Each time the fitness function is called, a new game and playground are initialized. A new GeneticPlayer and three new AIPlayer instances are created. Notably, during the training phase, a specific method, addAIForFitness, was implemented in the Game class. This method does not start the threads typically used during a game simulation. The operations and terminals are linked to the newly created GeneticPlayer. 
-
-\begin{verbatim}
-for (int i = 0; i < 1000; i++) {
-            if (!game.isRunning() || goodboy.isDead()) {
-                System.err.println("Fitness: Stopped at iteration " + i + ", game running = " + game.isRunning() + ", GoodBoy dead = " + goodboy.isDead());
-                steps = i;
-                break;
-            }
-            for (Player player : game.getPlayers()) {
-                if (player instanceof AIPlayer aip) {
-                    System.err.println("Fitness: AIPlayer " + aip.getNickname() + " tick");
-                    aip.tick();
-                } else {
-                    GeneticPlayer gp = (GeneticPlayer) player;
-                    double result = gp.program.eval();
-                    System.err.println("Fitness: GeneticPlayer tick, result = " + result + ", position = (" + gp.gridX + "," + gp.gridY + ")");
-                    if (result == 1.0 || result == 2.0 || result == 3.0 || result == 4.0) {
-                        successfulMoves++;
-                    }
-                }
-            }
-            game.tick();
-        }
-\end{verbatim}
+\begin{alltt}
+	for (int i = 0; i < 1000; i++) \{
+	if (!game.isRunning() || goodboy.isDead()) \{
+	System.err.println("Fitness: Stopped at iteration " + i + 
+	", game running = " + game.isRunning() + 
+	", GoodBoy dead = " + goodboy.isDead());
+	steps = i;
+	break;
+	\}
+	for (Player player : game.getPlayers()) \{
+	if (player instanceof AIPlayer aip) \{
+	System.err.println("Fitness: AIPlayer " + 
+	aip.getNickname() + " tick");
+	aip.tick();
+	\} else \{
+	GeneticPlayer gp = (GeneticPlayer) player;
+	double result = gp.program.eval();
+	System.err.println("Fitness: GeneticPlayer tick, " +
+	"result = " + result + ", position = (" + 
+	gp.gridX + "," + gp.gridY + ")");
+	if (result >= 1.0 && result <= 4.0) \{
+	successfulMoves++;
+	\}
+	\}
+	\}
+	game.tick();
+	\}
+\end{alltt}
 
 In the loop, the player performs a maximum of 1,000 iterations before being forced to terminate. The loop is interrupted if the player dies or the game is no longer running, simulating a real environment where the GP interacts with AIPlayer instances. In each iteration, both the AIPlayer and GeneticPlayer call their tickmethods, selecting a new action and synchronizing their current state. After all players have synchronized, the game synchronizes with game.tick. During game.tick, selected bombs detonate, extras collected by players in the previous period modify their bomb range or capacity, and players may be killed by exploding bombs and removed from the game. Successful moves by the GP are recorded during the loop, as they impact the overall fitness.The fitness function consists of multiple components: 
 \begin{itemize}
