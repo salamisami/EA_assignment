@@ -63,7 +63,7 @@ class Bomb extends Element implements Explodable, Serializable {
             player.game.getPlayground().setElement(gridX, gridY, 0, null);
             timer.cancel();
             Server.getInstance().notifyExplosion(player.game, gridX, gridY,
-                    player.bombDistance);
+                    player.bombDistance, player);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

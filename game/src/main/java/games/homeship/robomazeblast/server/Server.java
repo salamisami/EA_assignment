@@ -169,13 +169,13 @@ public class Server {
      * @param y
      * @param distance
      */
-    void notifyExplosion(Game game, int x, int y, int distance)
-            throws InterruptedException {
+    void notifyExplosion(Game game, int x, int y, int distance, Player bombOwner) throws InterruptedException {
         List<Object> data = new ArrayList<>();
         data.add(game);
         data.add(x);
         data.add(y);
         data.add(distance);
+        data.add(bombOwner);
         this.explosions.put(data);
     }
 

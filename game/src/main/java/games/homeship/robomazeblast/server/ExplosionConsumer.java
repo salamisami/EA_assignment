@@ -56,6 +56,7 @@ class ExplosionConsumer extends Thread {
                     int x = (Integer) explData.get(1);
                     int y = (Integer) explData.get(2);
                     int dist = (Integer) explData.get(3);
+                    Player bombOwner = (Player) explData.get(4);
                     for (Session sess : game.getPlayerSessions()) {
                         this.server.getClients().get(sess)
                                 .explosion(new Event(new Object[] { x, y, dist }));
@@ -75,23 +76,23 @@ class ExplosionConsumer extends Thread {
                         for (int k = 0; k < 5; k++) {
                             // on the bomb
                             Element el = game.getPlayground().getElement(x, y)[k];
-                            processExplElement(game, el, x, y, k);
+                            processExplElement(game, el, x, y, k, bombOwner);
 
                             if (!right) {
                                 Element e = game.getPlayground().getElement(x + i, y)[k];
-                                right = processExplElement(game, e, x + i, y, k);
+                                right = processExplElement(game, e, x + i, y, k, bombOwner);
                             }
                             if (!left) {
                                 Element e = game.getPlayground().getElement(x - i, y)[k];
-                                left = processExplElement(game, e, x - i, y, k);
+                                left = processExplElement(game, e, x - i, y, k, bombOwner);
                             }
                             if (!top) {
                                 Element e = game.getPlayground().getElement(x, y - i)[k];
-                                top = processExplElement(game, e, x, y - i, k);
+                                top = processExplElement(game, e, x, y - i, k, bombOwner);
                             }
                             if (!bottom) {
                                 Element e = game.getPlayground().getElement(x, y + i)[k];
-                                bottom = processExplElement(game, e, x, y + i, k);
+                                bottom = processExplElement(game, e, x, y + i, k, bombOwner);
                             }
                         }
                     }
@@ -121,17 +122,20 @@ class ExplosionConsumer extends Thread {
     /**
      * @return false if the bombing blast must continue in this direction.
      */
-    private boolean processExplElement(Game game, Element e, int x, int y, int k) {
+    private boolean processExplElement(Game game, Element e, int x, int y, int k, Player bombOwner) {
         if (e != null) {
             if (e instanceof ExplodableWall) {
                 game.getPlayground().setElement(x, y, 0, createRandomizedExtra(x, y));
+                bombOwner.wallsBlown++;
                 return true;
             } else if (e instanceof Player) {
                 System.out.println(e + " died!");
+                ((Player)e).totalScore -= 500;
 
                 // Remove player from game (happens for both AI and Non-AI
                 // players)
                 game.removePlayer((Player) e);
+                bombOwner.playersKilled++;
 
                 // If e is an AIPlayer then it must die.
                 // A Non-AI Player will trigger the if-clause in the following

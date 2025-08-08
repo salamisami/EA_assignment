@@ -47,6 +47,9 @@ public class Player extends Element implements Explodable {
     protected int         bombCount         = 1;
 
     protected MoveDirection lastMoveDirection = MoveDirection.DOWN;
+    public int wallsBlown = 0;
+    public int playersKilled = 0;
+    public Double totalScore = 0.0;
 
     /**
      * No-arg constructor required for serialization.

@@ -60,7 +60,7 @@ public class Game implements Serializable {
      */
     public void addAI() {
         while (players.size() < 4) {
-            var player = new AIPlayer(this, playground);
+            var player = new AIPlayer_DE(this, playground); //ADD AI HERE
             addPlayer(player);
             player.start();
         }
