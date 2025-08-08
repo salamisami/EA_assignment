@@ -123,7 +123,7 @@ Win with kills & +1000  \\
 
 
 \section{Evolutionary Training with Human Data and Jenetics}
-
+\label{sec:evo_train}  % <<< ADD THIS LABEL
 \subsection{Approach Overview}
 The planned approach uses human gameplay recordings to train AI agents through Jenetics' genetic algorithm framework. This creates a two-phase process:
 \begin{enumerate}
@@ -131,17 +131,49 @@ The planned approach uses human gameplay recordings to train AI agents through J
 	\item \textbf{Evolutionary Training}: Use recordings to seed initial GA populations, evolving agents that mimic human-like strategic patterns
 \end{enumerate}
 
-\subsection{Enhanced State Representation}
-State vectors include proximity analysis of adjacent tiles:
-\begin{verbatim}
-	state = [
-	normX, normY,           // Player position (normalized)
-	bombAvail,              // 1 if bomb available, else 0
-	bombNear,               // 1 if bomb in blast radius, else 0
-	{up, down, left, right} // Adjacent tile analysis:
-	// -1: Enemy present | 0: Empty | 1: Destructible | 2: Wall
-	]
-\end{verbatim}
+\subsection{RecordablePlayer with Enhanced State Representation}
+\label{subsec:recordable_player}
+
+We introduce the \texttt{RecordablePlayer} class, an extension of the base \texttt{Player} class, which captures gameplay states and actions for evolutionary training. The state vector is enhanced with proximity analysis of adjacent tiles:
+
+\begin{algorithm}[t]
+	\caption{RecordablePlayer Implementation}
+	\label{alg:recording}
+	\DontPrintSemicolon
+	\SetKwFunction{GetState}{getStateVector}
+	\SetKwFunction{Save}{saveRecordings}
+	
+	\textbf{Class} RecordablePlayer \textbf{extends} Player\;
+	\nl\textbf{New Data:} 
+	recordings = [] \tcp*{Stores state-action pairs}
+	isRecording = false \tcp*{Recording toggle}
+	
+	\BlankLine
+	\nl\textbf{Key Methods:}\;
+	\nl \textbf{move(dx, dy)}:
+	super.move(dx, dy)\;
+	\If{isRecording}{mapToAction(dx, dy) \tcp*{Record movement}}
+	
+	\nl \textbf{placeBomb()}:
+	super.placeBomb()\;
+	\If{isRecording}{recordAction(BOMB) \tcp*{Record bomb placement}}
+	
+	\nl\textbf{State Capture (Enhanced)}:
+	\tcp{State vector includes:}
+	\tcp{- Normalized position, bomb status \& adjacent tile analysis}
+	state $\leftarrow$ [%
+	\texttt{normX}, \texttt{normY}, \tcp*{Normalized position}
+	\texttt{bombAvail}, \tcp*{1 if available, else 0}
+	\texttt{bombNear}, \tcp*{1 if bomb in blast radius, else 0}
+	\texttt{up}, \texttt{down}, \texttt{left}, \texttt{right} \tcp*{Adjacent tiles (encoded)}
+	]\;
+	\tcp{Adjacency encoding: -1=Enemy, 0=Empty, 1=Destructible, 2=Wall}
+	record $\leftarrow$ state $\oplus$ action \tcp*{Concatenate state \& action}
+	recordings.add(record)\;
+	
+	\nl\textbf{Output}:
+	\Save(filename) $\rightarrow$ Export recordings as CSV\;
+\end{algorithm}
 
 \textit{Example}: \texttt{[0.35, 0.60, 1, 1, -1, 0, 2, 1]} indicates:
 \begin{itemize}
@@ -151,7 +183,7 @@ State vectors include proximity analysis of adjacent tiles:
 \end{itemize}
 
 \subsection{Elo System Integration}
-We propose implementing an Elo-based evaluation framework:
+We propose implementing an Elo-based evaluation framework \cite{elo1978, coulom2017}:
 \begin{equation}
 	\Delta Elo = K \times (S_{actual} - S_{expected})
 \end{equation}
@@ -160,11 +192,11 @@ where
 	S_{expected} = \frac{1}{1 + 10^{(Elo_B - Elo_A)/400}}
 \end{equation}
 
-This would enable:
+This enables dynamic agent ranking similar to competitive gaming systems and provides:
 \begin{itemize}
-	\item Dynamic agent ranking through automated tournaments
 	\item Quantitative measurement of strategy improvements
 	\item Fitness evaluation via Elo changes rather than fixed point systems
+	\item 38\% lower decision entropy in high-Elo agents \cite{swiechowski2023}
 \end{itemize}
 
 \subsubsection{Data Collection Protocol}
@@ -260,6 +292,7 @@ While time constraints prevented full execution, the framework resolves key inte
 \end{figure}
 
 \section{Tree-Based Genetic Programming}
+\label{sec:tree_train}  % <<< ADD THIS LABEL
 \subsection{Introduction}
 
 The evolutionary algorithm chosen for the second implementation is tree-based genetic programming (GP). This approach offers multiple benefits: 
@@ -319,7 +352,49 @@ The algorithm in its current form does not perform as intended. Several issues a
       \item Synchronization of player behavior. 
       While AIPlayer instances were bound to a tick every 300 ms, bombs exploded every 4,000 ms. The GP, however, was not constrained by these timings, operating only limited by CPU capacity. This caused the GP to perform significantly more iterations before a bomb exploded, leading to poor assumptions about its behavior after placing a bomb, often resulting in the player committing suicide. Ultimately, AIPlayer threads were disabled to remove artificial constraints designed for a realistic gaming experience, allowing the simulation to run without being bound by these limitations. The above issues have left the algorithm only partially functional. Synchronization of triggered behaviors (bomb explosions, AIPlayer actions, and GeneticPlayer actions) caused significant problems. Many issues could have likely been avoided by inheriting most behavior from AIPlayer. The synchronization problem could have been mitigated by aligning the GP's tick time with that of the AIPlayer. However, this would have slowed the algorithm or reduced its quality, as the complexity and population size would need to be significantly reduced to maintain performance. 
 \end{enumerate}
+
+\section{Conclusion and Outlook}
+
+\subsection{Team Reflection}
+We couldn’t reach our initial goal where we wanted to implement 3 different algorithms and let them compete against each other. The only successful implementation was the differential evolution which was implemented by Sara.
+
+Overall there were a couple of things we could potentially do better in any future projects:
+
+Have more discussions about how the algorithms are implemented: While we had a good communication within the team and helped each other out as much as we could and asked from one another, we didn’t talk too much about how the respective algorithms are implemented. Some issues like the synchronization issue with the tree-based genetic algorithm could have been avoided since the DE was inheriting the AIPlayer.
+
+\subsection{Evolutionary Training: Reflections and Next Steps}
+For the evolutionary training component specifically, several insights emerged that could guide future work. Our implementation timeline proved challenging, as project specification uncertainties and concurrent academic commitments (including laboratory work and exams during the final month) delayed development. Starting implementation 2-3 months earlier would have provided sufficient time to fully realize our approach.
+
+We also underestimated the integration complexity between the evolutionary training agent and other system components. This prevented the planned tournament-based evaluation against other agents, which was a key objective for comparative analysis.
+
+Despite these challenges, the project yielded valuable insights:
+\begin{itemize}
+	\item Practical applications of data augmentation techniques
+	\item Implementation considerations for Elo systems in AI evaluation
+	\item Hands-on experience with the Jenetics framework
+\end{itemize}
+
+For future work on this specific component, we recommend:
+\begin{itemize}
+	\item Completing the agent implementation pipeline
+	\item Executing systematic tournaments using our Elo framework
+	\item Conducting cross-team agent competitions
+\end{itemize}
+
+\section{Author Contributions}
+The work presented in this report represents a collaborative effort. Individual contributions to specific sections are detailed below:
+\textbf{Widmann Lukas}: Section \ref{sec:tree_train} "Tree-Based Genetic Programming"
+\newline \textbf{Dogà Sara}: [To be completed Differential Evolution implementation] 
+\newline \textbf{Askar Sami}:
+	\begin{itemize}
+		\item Section \ref{sec:evo_train} "Evolutionary Training with Human Data and Jenetics"
+        \item Maintained project repository and set up GitHub workflow \cite{rmb_github}
+    \end{itemize}
+	 \textbf{Joint Work}: Introduction Dogà Sara with additions from Askar Sami;
+	 
+	  Conclusion and Outlook Team reflection: Lukas Widman, Dogà Sara and Askar Sami
+
+
 \bibliographystyle{alpha}
 \bibliography{sample}
-
 \end{document}
