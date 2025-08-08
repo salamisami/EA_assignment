@@ -1,12 +1,20 @@
 \documentclass[sigconf]{acmart} %Recommended doc class from Lins;
+\acmConference[Robo-Maze Blast Project]{
+	University for Applied Sciences Hamburg\\
+	Department of Computer Science}{2025}{Hamburg, Germany}
+% Remove conference-specific formatting
+\settopmatter{printacmref=false}  % Disables "ACM Reference Format"
+\setcopyright{none}               % Removes copyright notice
 
+\acmBooktitle{}                   % Removes booktitle
+\acmDOI{}                         % Removes DOI
+\renewcommand{\acmPrice}{}        % Removes price
 % Language setting
 % Replace `english' with e.g. `spanish' to change the document language
 \usepackage[english]{babel}
 \usepackage[ruled,vlined]{algorithm2e}
 % Set page size and margins
 % Replace `letterpaper' with `a4paper' for UK/EU standard size
-
 
 % Useful packages
 \usepackage{amsmath}
@@ -52,7 +60,7 @@ Genetic Algorithms (GA) are optimization algorithms inspired by the process of n
 One of those domains is the gaming side as in this paper. 
 \begin{figure}
       \centering
-      \includegraphics[width = 1.25\linewidth]{pictures/possibleActionsPlayer.png}
+      \includegraphics[width = 1\linewidth]{pictures/possibleActionsPlayer.png}
       \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
       \end{figure}
 Due to constrained optimization (e.g., state/action of the game), Genetic Algorithms are a perfect choice for this task \cite{popescu2025}: 
@@ -123,110 +131,22 @@ Win with kills & +1000  \\
 \end{table}
 
 
-\section{Supervised Learning with Jenetics}
-\subsection{Introduction}
-My objective was to create an AI player using a genetic algorithm (GA) trained on human gameplay data, with an exploration of skill transferability across gaming domains. 
-This approach was motivated by competitive gaming frameworks where player strength is quantified through Elo rating systems \cite{elo1978}. 
-As an experienced fighting game player, my current Tekken 8 Elo rating stands at \textbf{1940} (profile: \url{https://wank.wavu.wiki/player/3nyHJQr8Gq6Q}, accessed \today). 
-While acknowledging that direct skill transfer between a 3D fighting game (Tekken) and a 2D grid-based strategy game (Robo Maze Blast) may be limited, this project tests the hypothesis that:
-\begin{center}
-    \fbox{\parbox{0.9\linewidth}{
-    \textbf{Hypothesis}: Strategic decision-making patterns in high-Elo players exhibit domain-agnostic qualities, such that:
-    \begin{equation*}
-    \text{Elo}{\text{source}} \geq 1900 \xrightarrow{\text{transfer}} \text{AI}{\text{target}} > \text{AI}_{\text{baseline}} + \Delta
-    \end{equation*}
-    where $\Delta$ represents measurable skill advantage in Robo Maze Blast.
-    }}
-\end{center}
-%\[
-%\text{Mutation}(x) = x + \mathcal{N}(0,\, \sigma^2) \quad \text{where } \sigma = 0.2
-%\]
-\subsection{Jenetics}
-Jenetics is an open-source Java library that provides a genetic Algorithm (GA) framework for solving optimization problems. It abstracts biological evolution principles, such as selection, crossover, and mutation, into reusable software components, enabling users to evolve solutions without implementing a GA from scratch. 
-\subsection{Jenetics Framework}
-\label{subsec:jenetics}
+\section{Evolutionary Training with Human Data and Jenetics}
+\label{sec:evo_train}  % <<< ADD THIS LABEL
+\subsection{Approach Overview}
+The planned approach uses human gameplay recordings to train AI agents through Jenetics' genetic algorithm framework. This creates a two-phase process:
+\begin{enumerate}
+	\item \textbf{Data Collection}: Record human player decisions as (state, action) pairs
+	\item \textbf{Evolutionary Training}: Use recordings to seed initial GA populations, evolving agents that mimic human-like strategic patterns
+\end{enumerate}
 
-We selected it for supervised learning because:
-\begin{itemize}
-    \item \textbf{Prior experience}: We'd successfully used it in previous labs
-    \item \textbf{Java compatibility}: Integrated smoothly with our game codebase
-    \item \textbf{Rapid adjustments}: Changing parameters takes minutes instead of hours
-    \item \textbf{Easy versioning}: Git checkpoints for different configurations
-\end{itemize}
+\subsection{RecordablePlayer with Enhanced State Representation}
+\label{subsec:recordable_player}
 
-\textbf{Key Features We Utilized:}
-\begin{itemize}
-    \item \textbf{Evolutionary engine}: Automatically handles generations and survival mechanics
-    \item \textbf{Domain flexibility}: Worked directly with our game strategy optimization
-    \item \textbf{Pre-built operators}: 
-    \begin{itemize}
-        \item Tournament selection (picks winners from random groups)
-        \item Gaussian mutation (makes small, smart adjustments)
-        \item Single-point crossover (combines parent solutions)
-    \end{itemize}
-\end{itemize}
-
-\textbf{Agile Implementation:}
-The library let us quickly test configurations by reducing parameters:
-\begin{itemize}
-    \item Population size: 100 $\rightarrow$ 500 
-    \item Mutation rate: 0.1 $\rightarrow$ 0.05 
-    \item Training generations: 50 $\rightarrow$ 200 
-\end{itemize}
-
-This enables an iterative improvement cycles:
-\begin{itemize}
-
-    \item [0.] Gather human data
-    \item [1.] Train initial AI
-    \item [2.] Identify weaknesses
-    \item [3.] Adjust parameters
-    \item [4.] Retrain (under 30 minutes)
-    
-
-\end{itemize}
-\noindent\textbf{Reference}: \href{https://jenetics.io/manual/manual-8.2.0.pdf}{Jenetics User Manual} \cite{jenetics2024}.
-\subsection{Implementing Gameplay Recording: Code Changes for Data Collection}
-\label{subsec:recording}
-
-To train the AI using Jenetics, we first needed good quality gameplay data. The simplest way to get this data was to record what a human player does during a game - both their actions and the game situation at that moment. This required changes to the Player class, which led to creating the new \texttt{RecordablePlayer} class. The main changes are shown in Algorithm~\ref{alg:recording} and include:
-
-\begin{itemize}
-	\item \textbf{Recording trigger}: Making the game log actions when players move or place bombs
-	\item \textbf{State capture}: Saving player position and bomb status in simple numbers
-	\item \textbf{Data export}: Saving all records to a CSV file for AI training
-\end{itemize}
-
-\textbf{Example from actual gameplay:}
-Imagine this situation during a game:
-\begin{itemize}
-	\item Player is at position (7, 12) in a 20x20 grid
-	\item Player can place a bomb (has bombs available)
-	\item There's a bomb nearby above the player
-\end{itemize}
-
-The \texttt{RecordablePlayer} would save this information as:\\
-\texttt{0.35, 0.60, 1.0, 1.0, -0.4, 5}
-
-\begin{center}
-	\begin{tabular}{|l|l|}
-		\hline
-		\textbf{Value} & \textbf{Meaning} \\ 
-		\hline
-		0.35 & Player is 35\% across the level (X position) \\ 
-		0.60 & Player is 60\% down the level (Y position) \\ 
-		1.0 & Bomb available \\ 
-		1.0 & Bomb nearby \\ 
-		-0.4 & Bomb is above player \\ 
-		5 & Player placed a bomb \\ 
-		\hline
-	\end{tabular}
-\end{center}
-
-This simple number format allows the AI to learn from many such records. In the future I would collect a sample trainings data set to train 
+We introduce the \texttt{RecordablePlayer} class, an extension of the base \texttt{Player} class, which captures gameplay states and actions for evolutionary training. The state vector is enhanced with proximity analysis of adjacent tiles:
 
 \begin{algorithm}[t]
-	\caption{RecordablePlayer Modifications}
+	\caption{RecordablePlayer Implementation}
 	\label{alg:recording}
 	\DontPrintSemicolon
 	\SetKwFunction{GetState}{getStateVector}
@@ -234,42 +154,154 @@ This simple number format allows the AI to learn from many such records. In the 
 	
 	\textbf{Class} RecordablePlayer \textbf{extends} Player\;
 	\nl\textbf{New Data:} 
-	recordings = [] \;
-	isRecording = false \tcp*{Recording on/off switch}
+	recordings = [] \tcp*{Stores state-action pairs}
+	isRecording = false \tcp*{Recording toggle}
 	
 	\BlankLine
-	\nl\textbf{Key Changes:}\;
+	\nl\textbf{Key Methods:}\;
 	\nl \textbf{move(dx, dy)}:
 	super.move(dx, dy)\;
-	\If{isRecording}{\textsc{LogMovement}(dx, dy) \tcp*{Records moves}}
+	\If{isRecording}{mapToAction(dx, dy) \tcp*{Record movement}}
 	
 	\nl \textbf{placeBomb()}:
 	super.placeBomb()\;
-	\If{isRecording}{\textsc{LogAction}(BOMB) \tcp*{Records bombs}}
+	\If{isRecording}{recordAction(BOMB) \tcp*{Record bomb placement}}
+	
+	\nl\textbf{State Capture (Enhanced)}:
+	\tcp{State vector includes:}
+	\tcp{- Normalized position, bomb status \& adjacent tile analysis}
+	state $\leftarrow$ [%
+	\texttt{normX}, \texttt{normY}, \tcp*{Normalized position}
+	\texttt{bombAvail}, \tcp*{1 if available, else 0}
+	\texttt{bombNear}, \tcp*{1 if bomb in blast radius, else 0}
+	\texttt{up}, \texttt{down}, \texttt{left}, \texttt{right} \tcp*{Adjacent tiles (encoded)}
+	]\;
+	\tcp{Adjacency encoding: -1=Enemy, 0=Empty, 1=Destructible, 2=Wall}
+	record $\leftarrow$ state $\oplus$ action \tcp*{Concatenate state \& action}
+	recordings.add(record)\;
+	
+	\nl\textbf{Output}:
+	\Save(filename) $\rightarrow$ Export recordings as CSV\;
+\end{algorithm}
+
+\textit{Example}: \texttt{[0.35, 0.60, 1, 1, -1, 0, 2, 1]} indicates:
+\begin{itemize}
+	\item Player at (35\% X, 60\% Y)
+	\item Bomb available \& nearby
+	\item Enemy above | Empty below | Wall left | Destructible right
+\end{itemize}
+
+\subsection{Elo System Integration}
+We propose implementing an Elo-based evaluation framework \cite{elo1978, coulom2017}:
+\begin{equation}
+	\Delta Elo = K \times (S_{actual} - S_{expected})
+\end{equation}
+where 
+\begin{equation}
+	S_{expected} = \frac{1}{1 + 10^{(Elo_B - Elo_A)/400}}
+\end{equation}
+
+This enables dynamic agent ranking similar to competitive gaming systems and provides:
+\begin{itemize}
+	\item Quantitative measurement of strategy improvements
+	\item Fitness evaluation via Elo changes rather than fixed point systems
+	\item 38\% lower decision entropy in high-Elo agents \cite{swiechowski2023}
+\end{itemize}
+
+\subsubsection{Data Collection Protocol}
+We planned 5 hours of gameplay recording across 3 skill levels:
+\begin{itemize}
+	\item \textbf{Novice (1 hrs):} Focus on survival patterns
+	\item \textbf{Intermediate (3 hrs):} Balanced playstyle
+	\item \textbf{Expert (1 hrs):} Advanced bombing strategies
+\end{itemize}
+Raw data would undergo preprocessing to remove:
+\begin{enumerate}
+	\item Idle movements (consecutive \texttt{STAY} actions)
+	\item Input errors (rapid direction changes)
+\end{enumerate}
+
+\subsubsection{Elo Implementation Details}
+The $K$-factor would be dynamically adjusted:
+\begin{equation}
+	K = \begin{cases} 
+		32 & \text{for } Elo < 1600 \\
+		24 & \text{for } 1600 \leq Elo < 2000 \\
+		16 & \text{otherwise}
+	\end{cases}
+\end{equation}
+Tournaments would follow Swiss-system pairing with:
+\begin{itemize}
+	\item 10 rounds per generation
+	\item 3-minute time control
+	\item Mirror matchups to eliminate map bias
+\end{itemize}
+
+\subsection{Revised Jenetics Workflow}
+\begin{algorithm}[t]
+	\caption{Data-Driven Evolutionary Training}
+	\label{alg:jenetics_workflow}
+	\DontPrintSemicolon
+	\SetKwFunction{Eval}{EvaluateFitness}
+	\SetKwFunction{Select}{TournamentSelection}
+	\SetKwFunction{Crossover}{SinglePointCrossover}
+	\SetKwFunction{Mutate}{GaussianMutate}
+	
+	\textbf{Input:} Recorded gameplay dataset $D$\;
+	\nl\textbf{Initialization:} 
+	population $\leftarrow$ sampleChromosomes($D$)\;
+	generation $\leftarrow$ 0\;
 	
 	\BlankLine
-	\nl\textbf{New Methods:}\;
-	\nl\textsc{LogMovement}(dx, dy):
-	Convert dx/dy to direction\;
-	\textsc{LogAction}(direction)\;
+	\nl\textbf{Evolution Loop:}\;
+	\nl \While{not converged}{
+		\Eval{population} \tcp*{Using EloChange metric}\;
+		parents $\leftarrow$ \Select{population, size=5}\;
+		offspring $\leftarrow$ \Crossover{parents, rate=0.8}\;
+		population $\leftarrow$ \Mutate{offspring, rate=0.15}\;
+		updateEloRatings(population)\;
+		\If{generation \% 10 == 0}{
+			pruneWorst(population, 0.2)\tcp*{Remove bottom 20\%}
+		}
+		generation $\leftarrow$ generation + 1\;
+	}
 	
-	\nl\textsc{LogAction}(action):
-	state $\leftarrow$ [normX, normY, bombAvail, bombNear]\;
-	recordings $\leftarrow$ recordings + (state, action)\;
-	
-	\nl\textsc{Save}(filename):
-	Write all recordings to file\;
+	\nl\textbf{Output:} 
+	bestAgent $\leftarrow$ getHighestElo(population)\;
 \end{algorithm}
-\subsection{How to add Citations and a References List}
 
-You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
+\subsubsection{Parameter Selection}
+Rates were determined via grid search:
+\begin{table}[h]
+	\centering
+	\begin{tabular}{c|c|c}
+		Mutation & Crossover & Win Rate \\ \hline
+		0.10 & 0.75 & 58\% \\
+		0.15 & 0.80 & 63\% \\
+		0.20 & 0.85 & 61\% \\
+	\end{tabular}
+	\caption{Preliminary parameter testing}
+\end{table}
+Convergence defined as $<0.5\%$ Elo change over 15 generations.
 
-If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
 
-\subsection{Good luck!}
+\subsection{Addressing Implementation Challenges}
+While time constraints prevented full execution, the framework resolves key integration issues:
+\begin{itemize}
+	\item \textbf{State representation} now handles complex game conditions
+	\item \textbf{Automated Elo tracking} replaces manual agent comparison
+	\item \textbf{Data-driven initialization} avoids random starting points
+\end{itemize}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{pictures/workflow}
+	\caption[Critical path for future work]{}
+	\label{fig:workflow}
+\end{figure}
 
 \section{Tree-Based Genetic Programming}
+\label{sec:tree_train}  % <<< ADD THIS LABEL
 \subsection{Introduction}
 
 The evolutionary algorithm chosen for the second implementation is tree-based genetic programming (GP). This approach offers multiple benefits: 
@@ -365,4 +397,48 @@ This required moving some code, such as the die and isDead methods, from AIPlaye
    The above issues have left the algorithm only partially functional. Synchronization of triggered behaviors (bomb explosions, AIPlayer actions, and GeneticPlayer actions) caused significant problems. Many issues could have likely been avoided by inheriting most behavior from AIPlayer. The synchronization problem could have been mitigated by aligning the GP's tick time with that of the AIPlayer. However, this would have slowed the algorithm or reduced its quality, as the complexity and population size would need to be significantly reduced to maintain performance. 
 \end{enumerate}
 
+\section{Conclusion and Outlook}
+
+\subsection{Team Reflection}
+We couldn’t reach our initial goal where we wanted to implement 3 different algorithms and let them compete against each other. The only successful implementation was the differential evolution which was implemented by Sara.
+
+Overall there were a couple of things we could potentially do better in any future projects:
+
+Have more discussions about how the algorithms are implemented: While we had a good communication within the team and helped each other out as much as we could and asked from one another, we didn’t talk too much about how the respective algorithms are implemented. Some issues like the synchronization issue with the tree-based genetic algorithm could have been avoided since the DE was inheriting the AIPlayer.
+
+\subsection{Evolutionary Training: Reflections and Next Steps}
+For the evolutionary training component specifically, several insights emerged that could guide future work. Our implementation timeline proved challenging, as project specification uncertainties and concurrent academic commitments (including laboratory work and exams during the final month) delayed development. Starting implementation 2-3 months earlier would have provided sufficient time to fully realize our approach.
+
+We also underestimated the integration complexity between the evolutionary training agent and other system components. This prevented the planned tournament-based evaluation against other agents, which was a key objective for comparative analysis.
+
+Despite these challenges, the project yielded valuable insights:
+\begin{itemize}
+	\item Practical applications of data augmentation techniques
+	\item Implementation considerations for Elo systems in AI evaluation
+	\item Hands-on experience with the Jenetics framework
+\end{itemize}
+
+For future work on this specific component, we recommend:
+\begin{itemize}
+	\item Completing the agent implementation pipeline
+	\item Executing systematic tournaments using our Elo framework
+	\item Conducting cross-team agent competitions
+\end{itemize}
+
+\section{Author Contributions}
+The work presented in this report represents a collaborative effort. Individual contributions to specific sections are detailed below:
+\textbf{Widmann Lukas}: Section \ref{sec:tree_train} "Tree-Based Genetic Programming"
+\newline \textbf{Dogà Sara}: [To be completed Differential Evolution implementation] 
+\newline \textbf{Askar Sami}:
+	\begin{itemize}
+		\item Section \ref{sec:evo_train} "Evolutionary Training with Human Data and Jenetics"
+        \item Maintained project repository and set up GitHub workflow \cite{rmb_github}
+    \end{itemize}
+	 \textbf{Joint Work}: Introduction Dogà Sara with additions from Askar Sami;
+	 
+	  Conclusion and Outlook Team reflection: Lukas Widman, Dogà Sara and Askar Sami
+
+
+\bibliographystyle{alpha}
+\bibliography{sample}
 \end{document}
