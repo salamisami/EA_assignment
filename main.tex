@@ -11,6 +11,17 @@
 % Useful packages
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{listings}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,       % Zeilen automatisch umbrechen
+    breakatwhitespace=true,% nur an Leerzeichen umbrechen
+    columns=fullflexible,  % fixe Breite der Zeichen
+    frame=single,          % Rahmen ums Listing
+    postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space} % Pfeil bei Umbruch
+}
+
 \title{Robo-maze Blast Report}
 \author{Dogà Sara}
 \author{Widmann Lukas}
@@ -262,62 +273,96 @@ If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded 
 \subsection{Introduction}
 
 The evolutionary algorithm chosen for the second implementation is tree-based genetic programming (GP). This approach offers multiple benefits: 
-First, it is highly flexible. The tree structure allows a wide range of programs to be represented by the algorithm. 
-Furthermore, GP can "discover novel and unexpected solutions that may not be apparent to human programmers," as the algorithm is not biased toward favoring certain approaches over others, as long as they are within the rules set by the programmer or hardware. 
-Additionally, GP can easily adapt to changing requirements and inputs, making it highly adaptable. 
+
+\begin{enumerate}
+	\item First, it is highly flexible. The tree structure allows a wide range of programs to be represented by the algorithm. 
+ 	\item Furthermore, GP can "discover novel and unexpected solutions that may not be apparent to human programmers," as the algorithm is not biased toward favoring certain approaches over others, as long as they are within the rules set by the programmer or hardware.
+  	\item Additionally, GP can easily adapt to changing requirements and inputs, making it highly adaptable.
 This approach was chosen due to its high flexibility. While the initial training phase against the already implemented AI players might be more challenging due to the complexity of the setup compared to other algorithms like Differential Evolution or regular Genetic Algorithms, the benefits of flexibility and adaptability to new circumstances are promising in an environment where multiple evolutionary algorithms compete against each other. 
 
 \subsection{Design Decisions}
 
-The implementation of the algorithm is encapsulated in the GeneticPlayer class. This class does not inherit from the AIPlayer class, which already contains significant functionality. Inheritance was avoided because the setup of genetic programming differs significantly from "regular" genetic algorithms. GP uses a tree structure and consists of multiple components (functions, terminals, and constants). Terminals represent the leaf nodes of the tree, whereas functions branch out, increasing the complexity of the tree.The GeneticPlayer class contains an abstract static class called Operation, which serves as the base for all terminals and functions. The respective terminals and functions inherit from Operation. The terminals include basic movement operators such as MoveUp, MoveDown, MoveLeft, MoveRight, and Stay, which represent movements in the game along the x- and y-axes. Additional terminals include IsTargetZone, CheckForBomb, PlaceBomb, CheckForExtra, GetDistanceToEnemy, and three constant values. These terminals encapsulate functionality already implemented for the AIPlayer, allowing the GP to iterate over it. The constant values are arbitrary defaults that can be adjusted based on the algorithm's performance or goals.The algorithm also relies on two operations: GreaterThan and IfElse. GreaterThan has an arity of 2, meaning it compares two values, returning 1 if the first value is greater than the second and 0 otherwise. IfElse has an arity of 3. It checks whether the first value is greater than 0. If true, it forwards the value t[1]; otherwise, it forwards t[2].The core of the GP is the initializeGP method. In this method, functions and terminals are initialized, and the maximum tree depth is set. During the training phase, a depth of 5 was used, but this can be adjusted based on performance. The engine combines the algorithm's constraints with the fitness function. Parameters such as population size, mutation rate, and crossover rate can be manually adjusted depending on the algorithm's performance. The result performs the actual training by streaming the data and applying the constraint of the number of generations. Finally, the best strategy is returned.The fitness function is where the actual training occurs. Each time the fitness function is called, a new game and playground are initialized. A new GeneticPlayer and three new AIPlayer instances are created. Notably, during the training phase, a specific method, addAIForFitness, was implemented in the Game class. This method does not start the threads typically used during a game simulation. The operations and terminals are linked to the newly created GeneticPlayer. 
+The implementation of the algorithm is encapsulated in the GeneticPlayer class. This class does not inherit from the AIPlayer class, which already contains significant functionality. Inheritance was avoided because the setup of genetic programming differs significantly from "regular" genetic algorithms. GP uses a tree structure and consists of multiple components (functions, terminals, and constants). Terminals represent the leaf nodes of the tree, whereas functions branch out, increasing the complexity of the tree. \\ 
+The GeneticPlayer class contains an abstract static class called Operation, which serves as the base for all terminals and functions. The respective terminals and functions inherit from Operation. The terminals include basic movement operators such as MoveUp, MoveDown, MoveLeft, MoveRight, and Stay, which represent movements in the game along the x- and y-axes. Additional terminals include IsTargetZone, CheckForBomb, PlaceBomb, CheckForExtra, GetDistanceToEnemy, and three constant values. These terminals encapsulate functionality already implemented for the AIPlayer, allowing the GP to iterate over it. The constant values are arbitrary defaults that can be adjusted based on the algorithm's performance or goals.
 
-\begin{verbatim}
+The algorithm also relies on two operations: GreaterThan and IfElse. GreaterThan has an arity of 2, meaning it compares two values, returning 1 if the first value is greater than the second and 0 otherwise. IfElse has an arity of 3. It checks whether the first value is greater than 0. If true, it forwards the value t[1]; otherwise, it forwards t[2].
+
+\begin{figure}
+      \centering
+      \includegraphics[width = 1.25\linewidth]{pictures/possibleActionsPlayer.png}
+      \caption{\label{fig:possibleActionsPlayer}A diagram on the possible actions of a player}
+\end{figure}
+
+In the picture above one can see a possible scenario of a tree being built. The functions can never represent leave nodes. They always have multiple nodes attached to them below. The terminals on the other hand represent leave nodes and therefore no longer branch out. 
+
+The core of the GP is the initializeGP method. In this method, functions and terminals are initialized, and the maximum tree depth is set. During the training phase, a depth of 5 was used, but this can be adjusted based on performance. The engine combines the algorithm's constraints with the fitness function. Parameters such as population size, mutation rate, and crossover rate can be manually adjusted depending on the algorithm's performance. The result performs the actual training by streaming the data and applying the constraint of the number of generations. Finally, the best strategy is returned. \\ 
+The fitness function is where the actual training occurs. Each time the fitness function is called, a new game and playground are initialized. A new GeneticPlayer and three new AIPlayer instances are created. Notably, during the training phase, a specific method, addAIForFitness, was implemented in the Game class. This method does not start the threads typically used during a game simulation.
+
+The operations and terminals are linked to the newly created GeneticPlayer. 
+
+\begin{lstlisting}[language=Java]
 for (int i = 0; i < 1000; i++) {
-            if (!game.isRunning() || goodboy.isDead()) {
-                System.err.println("Fitness: Stopped at iteration " + i + ", game running = " + game.isRunning() + ", GoodBoy dead = " + goodboy.isDead());
-                steps = i;
-                break;
+    if (!game.isRunning() || goodboy.isDead()) {
+        System.err.println("Fitness: Stopped at iteration " + i +
+            ", game running = " + game.isRunning() +
+            ", GoodBoy dead = " + goodboy.isDead());
+        steps = i;
+        break;
+    }
+    for (Player player : game.getPlayers()) {
+        if (player instanceof AIPlayer aip) {
+            System.err.println("Fitness: AIPlayer " +
+                aip.getNickname() + " tick");
+            aip.tick();
+        } else {
+            GeneticPlayer gp = (GeneticPlayer) player;
+            double result = gp.program.eval();
+            System.err.println("Fitness: GeneticPlayer tick, result = " +
+                result + ", position = (" + gp.gridX + "," + gp.gridY + ")");
+            if (result == 1.0 || result == 2.0 ||
+                result == 3.0 || result == 4.0) {
+                successfulMoves++;
             }
-            for (Player player : game.getPlayers()) {
-                if (player instanceof AIPlayer aip) {
-                    System.err.println("Fitness: AIPlayer " + aip.getNickname() + " tick");
-                    aip.tick();
-                } else {
-                    GeneticPlayer gp = (GeneticPlayer) player;
-                    double result = gp.program.eval();
-                    System.err.println("Fitness: GeneticPlayer tick, result = " + result + ", position = (" + gp.gridX + "," + gp.gridY + ")");
-                    if (result == 1.0 || result == 2.0 || result == 3.0 || result == 4.0) {
-                        successfulMoves++;
-                    }
-                }
-            }
-            game.tick();
         }
-\end{verbatim}
+    }
+    game.tick();
+}
+\end{lstlisting}
 
-In the loop, the player performs a maximum of 1,000 iterations before being forced to terminate. The loop is interrupted if the player dies or the game is no longer running, simulating a real environment where the GP interacts with AIPlayer instances. In each iteration, both the AIPlayer and GeneticPlayer call their tickmethods, selecting a new action and synchronizing their current state. After all players have synchronized, the game synchronizes with game.tick. During game.tick, selected bombs detonate, extras collected by players in the previous period modify their bomb range or capacity, and players may be killed by exploding bombs and removed from the game. Successful moves by the GP are recorded during the loop, as they impact the overall fitness.The fitness function consists of multiple components: 
+In the loop, the player performs a maximum of 1,000 iterations before being forced to terminate. \\ 
+The loop is interrupted if the player dies or the game is no longer running, simulating a real environment where the GP interacts with AIPlayer instances. In each iteration, both the AIPlayer and GeneticPlayer call their tickmethods, selecting a new action and synchronizing their current state. \\ 
+After all players have synchronized, the game synchronizes with game.tick. During game.tick, selected bombs detonate, extras collected by players in the previous period modify their bomb range or capacity, and players may be killed by exploding bombs and removed from the game. Successful moves by the GP are recorded during the loop, as they impact the overall fitness.
+
+The fitness function consists of multiple components: 
 \begin{itemize}
       \item survivalTime 
       \item extrasCollected 
       \item deathPenalty 
       \item moveReward 
 \end{itemize}
-Since the algorithm aims to minimize the fitness function, beneficial actions for the GP receive a negative multiplier, while harmful actions receive a positive multiplier. Notably, the fitness function currently ignores the number of opponents the GP kills, meaning aggressive behavior does not affect fitness. This design choice promotes defensive behavior, prioritizing survival over aggression. The goal is for the player to survive as long as possible, leading to longer games compared to aggressive strategies where the player either dies or kills quickly. This defensive approach, inspired by strategic games like chess where top players prioritize avoiding mistakes over attacking, is reinforced by a high deathPenalty and a strong emphasis on survivalTime as a negative metric.The GeneticPlayer class also includes a tick method, called by the GeneticPlayerThread, which is started in a real game environment to visually observe the player's behavior. 
+
+Since the algorithm aims to minimize the fitness function, beneficial actions for the GP receive a negative multiplier, while harmful actions receive a positive multiplier. Notably, the fitness function currently ignores the number of opponents the GP kills, meaning aggressive behavior does not affect fitness. \\
+This design choice promotes defensive behavior, prioritizing survival over aggression. The goal is for the player to survive as long as possible, leading to longer games compared to aggressive strategies where the player either dies or kills quickly. This defensive approach, inspired by strategic games like chess where top players prioritize avoiding mistakes over attacking, is reinforced by a high deathPenalty and a strong emphasis on survivalTime as a negative metric.
+
+The GeneticPlayer class also includes a tick method, called by the GeneticPlayerThread, which is started in a real game environment to visually observe the player's behavior. 
 
 \subsection{Issues}
 The algorithm in its current form does not perform as intended. Several issues arose during implementation, some of which remain unresolved: 
 \begin{enumerate}
       \item Not inheriting from the AIPlayer class. 
-      The primary issue, likely causing subsequent problems, was the decision not to inherit from the AIPlayerclass. Although this was a deliberate choice initially, it likely caused more harm than good. Much of the functionality was copied with slight adjustments, adding redundant code without significant value. The GeneticPlayer inherits from the Player class, sharing many variables with AIPlayer. This required moving some code, such as the die and isDead methods, from AIPlayer to Player to make it accessible to the GP.
+      The primary issue, likely causing subsequent problems, was the decision not to inherit from the AIPlayerclass. Although this was a deliberate choice initially, it likely caused more harm than good. Much of the functionality was copied with slight adjustments, adding redundant code without significant value. The GeneticPlayer inherits from the Player class, sharing many variables with AIPlayer. \\ 
+This required moving some code, such as the die and isDead methods, from AIPlayer to Player to make it accessible to the GP.
       \item Adjusting classes that were already functional. 
-      Other classes, such as the Game class, were modified to include the tick method, which synchronizes player actions within a time frame. However, these adjustments introduced additional issues, complicating debugging.cDuring the project, console output showed that the player performed actions like moving up and down, which sometimes succeeded and sometimes failed depending on obstacles like walls. However, the player never placed bombs. Debug print statements revealed that the condition player.bombs.size() < player.bombCount was never true, indicating that bombs always contained a bomb before the output statement was triggered. This led to replacing many System.out.println() statements with System.err.println(), suspecting that threading issues were affecting the print statements (as threads were initially started for all AIPlayer instances). This hypothesis was confirmed, revealing another issue: the players and bombs were not synchronized.
+      Other classes, such as the Game class, were modified to include the tick method, which synchronizes player actions within a time frame. However, these adjustments introduced additional issues, complicating debugging. 
+	  
+	During the project, console output showed that the player performed actions like moving up and down, which sometimes succeeded and sometimes failed depending on obstacles like walls. However, the player never placed bombs. Debug print statements revealed that the condition player.bombs.size() < player.bombCount was never true, indicating that bombs always contained a bomb before the output statement was triggered. This led to replacing many System.out.println() statements with System.err.println(), suspecting that threading issues were affecting the print statements (as threads were initially started for all AIPlayer instances). 
+ 
+ This hypothesis was confirmed, revealing another issue: the players and bombs were not synchronized.
       \item Synchronization of player behavior. 
-      While AIPlayer instances were bound to a tick every 300 ms, bombs exploded every 4,000 ms. The GP, however, was not constrained by these timings, operating only limited by CPU capacity. This caused the GP to perform significantly more iterations before a bomb exploded, leading to poor assumptions about its behavior after placing a bomb, often resulting in the player committing suicide. Ultimately, AIPlayer threads were disabled to remove artificial constraints designed for a realistic gaming experience, allowing the simulation to run without being bound by these limitations. The above issues have left the algorithm only partially functional. Synchronization of triggered behaviors (bomb explosions, AIPlayer actions, and GeneticPlayer actions) caused significant problems. Many issues could have likely been avoided by inheriting most behavior from AIPlayer. The synchronization problem could have been mitigated by aligning the GP's tick time with that of the AIPlayer. However, this would have slowed the algorithm or reduced its quality, as the complexity and population size would need to be significantly reduced to maintain performance. 
+      While AIPlayer instances were bound to a tick every 300 ms, bombs exploded every 4,000 ms. The GP, however, was not constrained by these timings, operating only limited by CPU capacity. This caused the GP to perform significantly more iterations before a bomb exploded, leading to poor assumptions about its behavior after placing a bomb, often resulting in the player committing suicide. \\ 
+	  Ultimately, AIPlayer threads were disabled to remove artificial constraints designed for a realistic gaming experience, allowing the simulation to run without being bound by these limitations. 
+   
+   The above issues have left the algorithm only partially functional. Synchronization of triggered behaviors (bomb explosions, AIPlayer actions, and GeneticPlayer actions) caused significant problems. Many issues could have likely been avoided by inheriting most behavior from AIPlayer. The synchronization problem could have been mitigated by aligning the GP's tick time with that of the AIPlayer. However, this would have slowed the algorithm or reduced its quality, as the complexity and population size would need to be significantly reduced to maintain performance. 
 \end{enumerate}
-
-We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the \textbf{Contact us} link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
-
-\bibliographystyle{alpha}
-\bibliography{sample}
 
 \end{document}
